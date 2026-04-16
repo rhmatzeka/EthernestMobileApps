@@ -6,7 +6,11 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia"
+    "deploy:token": "hardhat run scripts/deploy.js --network sepolia",
+    "mint:token": "hardhat run scripts/mintMatsToDeployer.js --network sepolia",
+    "deploy:pool": "hardhat run scripts/deployPool.js --network sepolia",
+    "deploy:idrx-pool": "hardhat run scripts/deployIdrxPool.js --network sepolia",
+    "seed:pool": "hardhat run scripts/seedPoolLiquidity.js --network sepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

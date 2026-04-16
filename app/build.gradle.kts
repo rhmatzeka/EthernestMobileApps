@@ -37,6 +37,10 @@ android {
         buildConfigField("String", "ETHERSCAN_SEPOLIA_BASE_URL", "\"https://api-sepolia.etherscan.io/api/\"")
         buildConfigField("String", "INFURA_PROJECT_ID", "\"${localProperty("INFURA_PROJECT_ID")}\"")
         buildConfigField("String", "ETHERSCAN_API_KEY", "\"${localProperty("ETHERSCAN_API_KEY")}\"")
+        buildConfigField("String", "MATS_TOKEN_ADDRESS", "\"${localProperty("MATS_TOKEN_ADDRESS")}\"")
+        buildConfigField("String", "MATS_SWAP_POOL_ADDRESS", "\"${localProperty("MATS_SWAP_POOL_ADDRESS")}\"")
+        buildConfigField("String", "IDRX_TOKEN_ADDRESS", "\"${localProperty("IDRX_TOKEN_ADDRESS")}\"")
+        buildConfigField("String", "IDRX_SWAP_POOL_ADDRESS", "\"${localProperty("IDRX_SWAP_POOL_ADDRESS")}\"")
     }
 
     buildTypes {

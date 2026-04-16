@@ -1,6 +1,8 @@
 # Mats Wallet Smart Contracts (Sepolia)
 
-This folder contains a simple ERC-20 token for testing Mats Wallet.
+This folder contains:
+- `MatsToken.sol` for the ERC-20 token
+- `MatsSwapPool.sol` for a simple on-chain MATS <-> ETH swap pool on Sepolia
 
 ## Requirements
 - Node.js 18+ and npm
@@ -17,7 +19,23 @@ This folder contains a simple ERC-20 token for testing Mats Wallet.
 ## Compile
 `npm run compile`
 
-## Deploy to Sepolia
-`npm run deploy:sepolia`
+## Deploy Token
+`npm run deploy:token`
 
-After deploy, copy the printed contract address and add it to Mats Wallet as a token contract.
+After deploy, copy the printed token contract address to `.env` as:
+`MATS_TOKEN_ADDRESS=...`
+
+## Deploy Swap Pool
+`npm run deploy:pool`
+
+After deploy, copy the printed pool contract address to `.env` as:
+`MATS_SWAP_POOL_ADDRESS=...`
+
+## Seed Pool Liquidity
+This step sends test ETH + MATS into the pool so swap becomes usable.
+
+`npm run seed:pool`
+
+## Notes
+- Swap in the Android app is designed for Sepolia testnet only.
+- The pool is a simple constant-product pool for learning/demo usage, not a production DEX.

@@ -53,6 +53,7 @@ public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHol
             binding.textTokenFiat.setText(item.getFiatValue());
 
             if (item.getImageResId() != 0) {
+                Glide.with(binding.imageToken.getContext()).clear(binding.imageToken);
                 binding.imageToken.setImageResource(item.getImageResId());
             } else {
                 Glide.with(binding.imageToken.getContext())

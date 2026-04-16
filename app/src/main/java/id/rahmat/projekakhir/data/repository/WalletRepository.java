@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import id.rahmat.projekakhir.BuildConfig;
+import id.rahmat.projekakhir.utils.FormatUtils;
 import id.rahmat.projekakhir.utils.AppPreferences;
 import id.rahmat.projekakhir.wallet.TokenBalance;
 import id.rahmat.projekakhir.wallet.EthereumNetwork;
@@ -85,15 +87,39 @@ public class WalletRepository {
         }
 
         List<TokenBalance> tokens = new ArrayList<>();
-        String matsContract = "0x43aF65907De42Ae13E22411f02d28123486e7691";
-        int matsDecimals = 18;
-        BigDecimal matsBalance = ethereumService.getErc20Balance(walletAddress, matsContract, matsDecimals, network);
-        tokens.add(new TokenBalance(
-                "Mats Token",
-                "MATS",
-                matsBalance,
-                "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
-        ));
+        PriceRepository.PriceSnapshot ethPrice = priceRepository.getLatestEthPrice();
+
+        if (BuildConfig.MATS_TOKEN_ADDRESS != null && !BuildConfig.MATS_TOKEN_ADDRESS.isEmpty()) {
+            int matsDecimals = 18;
+            BigDecimal matsBalance = ethereumService.getErc20Balance(walletAddress, BuildConfig.MATS_TOKEN_ADDRESS, matsDecimals, network);
+            BigDecimal matsUnitPriceEth = BigDecimal.ZERO;
+            if (BuildConfig.MATS_SWAP_POOL_ADDRESS != null && !BuildConfig.MATS_SWAP_POOL_ADDRESS.isEmpty()) {
+                matsUnitPriceEth = ethereumService.quoteMatsToEth(BigDecimal.ONE, network);
+            }
+            tokens.add(new TokenBalance(
+                    "Mats Token",
+                    "MATS",
+                    matsBalance,
+                    "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
+                    FormatUtils.safeMultiply(matsUnitPriceEth, ethPrice.idr),
+                    FormatUtils.safeMultiply(matsUnitPriceEth, ethPrice.usd)
+            ));
+        }
+
+        if (BuildConfig.IDRX_TOKEN_ADDRESS != null && !BuildConfig.IDRX_TOKEN_ADDRESS.isEmpty()) {
+            int idrxDecimals = ethereumService.getErc20Decimals(BuildConfig.IDRX_TOKEN_ADDRESS, network);
+            String idrxSymbol = ethereumService.getErc20Symbol(BuildConfig.IDRX_TOKEN_ADDRESS, network);
+            BigDecimal idrxBalance = ethereumService.getErc20Balance(walletAddress, BuildConfig.IDRX_TOKEN_ADDRESS, idrxDecimals, network);
+            BigDecimal idrxUnitPriceIdr = "IDRX".equalsIgnoreCase(idrxSymbol) ? BigDecimal.ONE : BigDecimal.ZERO;
+            tokens.add(new TokenBalance(
+                    "IDRX Token",
+                    idrxSymbol == null || idrxSymbol.isEmpty() ? "IDRX" : idrxSymbol,
+                    idrxBalance,
+                    null,
+                    idrxUnitPriceIdr,
+                    BigDecimal.ZERO
+            ));
+        }
         return tokens;
     }
 }

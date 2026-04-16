@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card_surface"
+    android:orientation="vertical"
+    android:padding="22dp">
+
+    <FrameLayout
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_success_orb">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_check_24" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/textSwapSuccessTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="@string/swap_success_dialog_title"
+        android:textColor="@color/mw_text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textSwapSuccessMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="@string/swap_success_dialog_message"
+        android:textColor="@color/mw_text_secondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/textSwapSuccessHash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_card_surface_elevated"
+        android:gravity="center"
+        android:padding="12dp"
+        android:textColor="@color/mw_text_primary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonCloseSwapSuccess"
+            style="@style/Widget.MatsWallet.Button.Secondary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:text="@string/back_action" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonOpenSwapEtherscan"
+            style="@style/Widget.MatsWallet.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/open_etherscan" />
+    </LinearLayout>
+</LinearLayout>

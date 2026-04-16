@@ -6,3 +6,7 @@ sdk.dir=C\:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk
 DEFAULT_ETH_NETWORK=sepolia
 INFURA_PROJECT_ID=your_infura_project_id
 ETHERSCAN_API_KEY=your_etherscan_api_key
+MATS_TOKEN_ADDRESS=your_mats_token_address
+MATS_SWAP_POOL_ADDRESS=your_swap_pool_address
+IDRX_TOKEN_ADDRESS=your_idrx_token_address
+IDRX_SWAP_POOL_ADDRESS=your_idrx_swap_pool_address

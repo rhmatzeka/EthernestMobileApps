@@ -119,11 +119,16 @@ public class HomeViewModel extends AndroidViewModel {
 
         if (tokenBalances != null) {
             for (TokenBalance token : tokenBalances) {
+                BigDecimal tokenTotalIdr = FormatUtils.safeMultiply(token.balance, token.unitPriceIdr);
+                String subtitle = snapshot.getNetworkName();
+                String fiatValue = token.unitPriceIdr.compareTo(BigDecimal.ZERO) > 0
+                        ? FormatUtils.formatIdr(tokenTotalIdr)
+                        : getApplication().getString(R.string.token_value_unavailable);
                 items.add(new TokenItem(
                         token.name,
-                        snapshot.getNetworkName(),
+                        subtitle,
                         FormatUtils.formatToken(token.balance, token.symbol),
-                        "-",
+                        fiatValue,
                         token.imageUrl,
                         resolveTokenIconRes(token.symbol)
                 ));
@@ -141,6 +146,9 @@ public class HomeViewModel extends AndroidViewModel {
         }
         if ("MATS".equalsIgnoreCase(symbol)) {
             return R.drawable.ic_token_mats;
+        }
+        if ("IDRX".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_idrx;
         }
         return 0;
     }
