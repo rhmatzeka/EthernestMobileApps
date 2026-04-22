@@ -15,6 +15,19 @@
         android:name="android.hardware.fingerprint"
         android:required="false" />
 
+    <queries>
+        <package android:name="com.binance.dev" />
+        <package android:name="com.binance.client" />
+        <package android:name="com.binance.android" />
+        <package android:name="com.binance.app" />
+        <package android:name="us.binance.dev" />
+        <package android:name="com.binance.us" />
+        <package android:name="com.coinbase.android" />
+        <package android:name="com.kraken.invest.app" />
+        <package android:name="com.okinc.okex.gp" />
+        <package android:name="id.co.indodax" />
+    </queries>
+
     <application
         android:name=".MatsWalletApp"
         android:allowBackup="true"
@@ -22,6 +35,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/ethernest1"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/ethernest1"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjekAkhir"
@@ -34,6 +48,12 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.receive.ReceiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.buy.BuyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.buy.PaymentWebViewActivity"
             android:exported="false" />
         <activity
             android:name=".ui.send.SendActivity"

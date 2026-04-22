@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/buyRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="24dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp">
+
+            <ImageButton
+                android:id="@+id/buttonBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start|center_vertical"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/back_action"
+                android:padding="8dp"
+                android:src="@drawable/ic_back_24" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/buy_screen_title"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|center_vertical"
+                android:gravity="center"
+                android:text="..."
+                android:textColor="@color/mw_text_primary"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textFiatAmount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="0"
+                    android:textColor="@color/mw_text_primary"
+                    android:textSize="52sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="116dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_buy_currency_pill"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="@drawable/bg_qris_logo"
+                        android:gravity="center"
+                        android:text="ID"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="@string/buy_currency_idr"
+                        android:textColor="@color/mw_text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textEthEstimate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="0.000000"
+                    android:textColor="@color/mw_text_secondary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="116dp"
+                    android:layout_height="58dp"
+                    android:layout_marginStart="18dp"
+                    android:background="@drawable/bg_buy_currency_pill"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_token_eth" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="@string/buy_asset_eth"
+                        android:textColor="@color/mw_text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/buttonPaymentMethod"
+            android:layout_width="match_parent"
+            android:layout_height="82dp"
+            android:background="@drawable/bg_buy_payment_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="18dp">
+
+            <TextView
+                android:id="@+id/textPaymentIcon"
+                android:layout_width="58dp"
+                android:layout_height="58dp"
+                android:background="@drawable/bg_payment_method_icon"
+                android:gravity="center"
+                android:text="ALL"
+                android:textColor="@color/mw_highlight"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/buy_payment_with"
+                    android:textColor="@color/mw_text_secondary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textPaymentMethod"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/buy_payment_all"
+                    android:textColor="@color/mw_text_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_chevron_right_24" />
+        </LinearLayout>
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:layout_marginTop="18dp"
+            android:columnCount="3"
+            android:rowCount="4">
+
+            <TextView android:id="@+id/key1" style="@style/Widget.MatsWallet.BuyKey" android:text="1" />
+            <TextView android:id="@+id/key2" style="@style/Widget.MatsWallet.BuyKey" android:text="2" />
+            <TextView android:id="@+id/key3" style="@style/Widget.MatsWallet.BuyKey" android:text="3" />
+            <TextView android:id="@+id/key4" style="@style/Widget.MatsWallet.BuyKey" android:text="4" />
+            <TextView android:id="@+id/key5" style="@style/Widget.MatsWallet.BuyKey" android:text="5" />
+            <TextView android:id="@+id/key6" style="@style/Widget.MatsWallet.BuyKey" android:text="6" />
+            <TextView android:id="@+id/key7" style="@style/Widget.MatsWallet.BuyKey" android:text="7" />
+            <TextView android:id="@+id/key8" style="@style/Widget.MatsWallet.BuyKey" android:text="8" />
+            <TextView android:id="@+id/key9" style="@style/Widget.MatsWallet.BuyKey" android:text="9" />
+            <TextView
+                android:id="@+id/keyComma"
+                style="@style/Widget.MatsWallet.BuyKey"
+                android:text="," />
+            <TextView android:id="@+id/key0" style="@style/Widget.MatsWallet.BuyKey" android:text="0" />
+            <ImageButton
+                android:id="@+id/keyBackspace"
+                style="@style/Widget.MatsWallet.BuyKey"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/pin_backspace_key"
+                android:padding="24dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_backspace_24" />
+        </GridLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonContinue"
+            style="@style/Widget.MatsWallet.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/buy_continue"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/mw_highlight" />
+    </LinearLayout>
+</ScrollView>

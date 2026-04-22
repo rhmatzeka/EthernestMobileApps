@@ -10,3 +10,5 @@ MATS_TOKEN_ADDRESS=your_mats_token_address
 MATS_SWAP_POOL_ADDRESS=your_swap_pool_address
 IDRX_TOKEN_ADDRESS=your_idrx_token_address
 IDRX_SWAP_POOL_ADDRESS=your_idrx_swap_pool_address
+MIDTRANS_PAYMENT_URL=your_midtrans_snap_redirect_or_payment_link_url
+BUY_BACKEND_BASE_URL=http://10.0.2.2:8787/

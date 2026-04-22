@@ -21,3 +21,4 @@ smart-contracts/node_modules
 smart-contracts/cache
 smart-contracts/artifacts
 smart-contracts/.env
+smart-contracts/*.log

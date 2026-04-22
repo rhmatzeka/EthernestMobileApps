@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -53,9 +54,19 @@ public class NftRepository {
 
         EthereumNetwork network = EthereumNetwork.fromKey(appPreferences.getSelectedNetwork());
         EtherscanApi api = network == EthereumNetwork.MAINNET ? mainnetApi : sepoliaApi;
+        JsonArray erc721Transfers = fetchNftTransfers(api, walletAddress, "tokennfttx");
+        JsonArray erc1155Transfers = fetchNftTransfers(api, walletAddress, "token1155tx");
+
+        List<NftAsset> ownedNfts = new ArrayList<>();
+        ownedNfts.addAll(inferOwnedErc721Nfts(walletAddress, erc721Transfers, network));
+        ownedNfts.addAll(inferOwnedErc1155Nfts(walletAddress, erc1155Transfers, network));
+        return enrichWithMetadata(ownedNfts, network);
+    }
+
+    private JsonArray fetchNftTransfers(EtherscanApi api, String walletAddress, String action) throws Exception {
         Response<EtherscanNftTransfersResponse> response = api.getNftTransfers(
                 "account",
-                "tokennfttx",
+                action,
                 walletAddress,
                 1,
                 NFT_TRANSFER_LIMIT,
@@ -67,13 +78,12 @@ public class NftRepository {
 
         EtherscanNftTransfersResponse body = response.body();
         if (body == null || body.result == null || !body.result.isJsonArray()) {
-            return Collections.emptyList();
+            return new JsonArray();
         }
-
-        return inferOwnedNfts(walletAddress, body.result.getAsJsonArray(), network);
+        return body.result.getAsJsonArray();
     }
 
-    private List<NftAsset> inferOwnedNfts(String walletAddress, JsonArray transfers, EthereumNetwork network) {
+    private List<NftAsset> inferOwnedErc721Nfts(String walletAddress, JsonArray transfers, EthereumNetwork network) {
         Map<String, NftAsset> ownedNfts = new LinkedHashMap<>();
         for (JsonElement element : transfers) {
             EtherscanNftTransferItem transfer = gson.fromJson(element, EtherscanNftTransferItem.class);
@@ -95,7 +105,62 @@ public class NftRepository {
                 ownedNfts.remove(key);
             }
         }
-        return enrichWithMetadata(new ArrayList<>(ownedNfts.values()), network);
+        return new ArrayList<>(ownedNfts.values());
+    }
+
+    private List<NftAsset> inferOwnedErc1155Nfts(String walletAddress, JsonArray transfers, EthereumNetwork network) {
+        Map<String, Erc1155Holding> holdings = new LinkedHashMap<>();
+        for (JsonElement element : transfers) {
+            EtherscanNftTransferItem transfer = gson.fromJson(element, EtherscanNftTransferItem.class);
+            if (transfer == null || isBlank(transfer.contractAddress) || isBlank(transfer.tokenId)) {
+                continue;
+            }
+
+            String key = transfer.contractAddress.toLowerCase() + ":" + transfer.tokenId;
+            Erc1155Holding holding = holdings.get(key);
+            if (holding == null) {
+                holding = new Erc1155Holding(transfer);
+                holdings.put(key, holding);
+            }
+
+            BigInteger value = parseTokenValue(transfer.tokenValue);
+            if (walletAddress.equalsIgnoreCase(transfer.to)) {
+                holding.balance = holding.balance.add(value);
+                holding.latestTransfer = transfer;
+            }
+            if (walletAddress.equalsIgnoreCase(transfer.from)) {
+                holding.balance = holding.balance.subtract(value);
+                holding.latestTransfer = transfer;
+            }
+        }
+
+        List<NftAsset> ownedNfts = new ArrayList<>();
+        for (Erc1155Holding holding : holdings.values()) {
+            if (holding.balance.compareTo(BigInteger.ZERO) <= 0) {
+                continue;
+            }
+            EtherscanNftTransferItem transfer = holding.latestTransfer;
+            ownedNfts.add(new NftAsset(
+                    fallbackCollectionName(transfer),
+                    transfer.tokenSymbol == null ? "" : transfer.tokenSymbol,
+                    transfer.tokenId,
+                    transfer.contractAddress,
+                    network.getDisplayName(),
+                    ""
+            ));
+        }
+        return ownedNfts;
+    }
+
+    private BigInteger parseTokenValue(String value) {
+        if (isBlank(value)) {
+            return BigInteger.ONE;
+        }
+        try {
+            return new BigInteger(value.trim());
+        } catch (NumberFormatException ignored) {
+            return BigInteger.ONE;
+        }
     }
 
     private List<NftAsset> enrichWithMetadata(List<NftAsset> nfts, EthereumNetwork network) {
@@ -194,6 +259,15 @@ public class NftRepository {
 
         static NftMetadata empty() {
             return new NftMetadata("", "");
+        }
+    }
+
+    private static class Erc1155Holding {
+        BigInteger balance = BigInteger.ZERO;
+        EtherscanNftTransferItem latestTransfer;
+
+        Erc1155Holding(EtherscanNftTransferItem latestTransfer) {
+            this.latestTransfer = latestTransfer;
         }
     }
 }

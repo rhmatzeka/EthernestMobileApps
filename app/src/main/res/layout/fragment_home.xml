@@ -260,17 +260,6 @@
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_card_surface_elevated"
-                        android:gravity="center"
-                        android:paddingVertical="10dp"
-                        android:text="@string/trust_badge_testnet"
-                        android:textColor="@color/mw_highlight"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -386,35 +375,6 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/tabWatchlist"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.2"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/textTabWatchlist"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/asset_tab_watchlist"
-                            android:textColor="@color/mw_text_secondary"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <View
-                            android:id="@+id/indicatorTabWatchlist"
-                            android:layout_width="72dp"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_asset_tab_indicator"
-                            android:visibility="invisible" />
-                    </LinearLayout>
-
-                    <LinearLayout
                         android:id="@+id/tabNfts"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -493,32 +453,6 @@
                         android:textSize="13sp" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/layoutWatchlistEmpty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_card_surface_elevated"
-                    android:orientation="vertical"
-                    android:padding="18dp"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/watchlist_empty_title"
-                        android:textColor="@color/mw_text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/watchlist_empty_subtitle"
-                        android:textColor="@color/mw_text_secondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout

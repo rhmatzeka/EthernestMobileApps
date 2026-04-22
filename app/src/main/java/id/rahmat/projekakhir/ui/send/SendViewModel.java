@@ -19,6 +19,7 @@ import id.rahmat.projekakhir.utils.AppExecutors;
 import id.rahmat.projekakhir.utils.FormatUtils;
 import id.rahmat.projekakhir.wallet.EthereumService;
 import id.rahmat.projekakhir.wallet.GasEstimation;
+import id.rahmat.projekakhir.wallet.WalletSnapshot;
 import org.web3j.crypto.Credentials;
 
 public class SendViewModel extends AndroidViewModel {
@@ -30,6 +31,7 @@ public class SendViewModel extends AndroidViewModel {
     private final MutableLiveData<GasEstimation> gasState = new MutableLiveData<>();
     private final MutableLiveData<String> fiatState = new MutableLiveData<>();
     private final MutableLiveData<String> sendResult = new MutableLiveData<>();
+    private final MutableLiveData<String> maxAmountState = new MutableLiveData<>();
 
     public SendViewModel(@NonNull Application application) {
         super(application);
@@ -49,6 +51,14 @@ public class SendViewModel extends AndroidViewModel {
 
     public LiveData<String> getSendResult() {
         return sendResult;
+    }
+
+    public LiveData<String> getMaxAmountState() {
+        return maxAmountState;
+    }
+
+    public String getSelectedNetworkName() {
+        return walletRepository.getSelectedNetwork().getDisplayName();
     }
 
     public void estimateGas(String toAddress, String amountEth) {
@@ -116,6 +126,23 @@ public class SendViewModel extends AndroidViewModel {
                 sendResult.postValue(hash);
             } catch (Exception exception) {
                 sendResult.postValue("");
+            }
+        });
+    }
+
+    public void loadMaxAmount() {
+        AppExecutors.io().execute(() -> {
+            try {
+                WalletSnapshot snapshot = walletRepository.loadWalletSnapshot();
+                BigDecimal reserveForGas = new BigDecimal("0.0005");
+                BigDecimal maxAmount = snapshot.getEthBalance().subtract(reserveForGas);
+                if (maxAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                    maxAmountState.postValue("");
+                    return;
+                }
+                maxAmountState.postValue(maxAmount.stripTrailingZeros().toPlainString());
+            } catch (Exception exception) {
+                maxAmountState.postValue("");
             }
         });
     }

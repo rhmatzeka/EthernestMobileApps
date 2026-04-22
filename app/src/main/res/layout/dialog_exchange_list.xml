@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_surface"
+    android:orientation="vertical"
+    android:padding="22dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/exchange_dialog_title"
+        android:textColor="@color/mw_text_primary"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/exchange_dialog_subtitle"
+        android:textColor="@color/mw_text_secondary"
+        android:textSize="13sp" />
+
+    <LinearLayout
+        android:id="@+id/buttonExchangeBinance"
+        style="@style/Widget.MatsWallet.ExchangeRow"
+        android:layout_marginTop="18dp">
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeLogo"
+            android:contentDescription="@string/exchange_binance"
+            android:src="@drawable/binance" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/exchange_binance" />
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeArrow" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonExchangeCoinbase"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeLogo"
+            android:contentDescription="@string/exchange_coinbase"
+            android:src="@drawable/coinbase" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/exchange_coinbase" />
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeArrow" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonExchangeKraken"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeLogo"
+            android:contentDescription="@string/exchange_kraken"
+            android:src="@drawable/kraken" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/exchange_kraken" />
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeArrow" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonExchangeOkx"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeLogo"
+            android:contentDescription="@string/exchange_okx"
+            android:src="@drawable/okx" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/exchange_okx" />
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeArrow" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonExchangeIndodax"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeLogo"
+            android:contentDescription="@string/exchange_indodax"
+            android:src="@drawable/indodax" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/exchange_indodax" />
+
+        <ImageView
+            style="@style/Widget.MatsWallet.ExchangeArrow" />
+    </LinearLayout>
+</LinearLayout>

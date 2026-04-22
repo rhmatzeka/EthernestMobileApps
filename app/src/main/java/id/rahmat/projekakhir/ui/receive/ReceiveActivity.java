@@ -7,8 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.text.InputType;
+import android.view.View;
 import android.widget.EditText;
 
 import com.google.zxing.BarcodeFormat;
@@ -49,6 +50,7 @@ public class ReceiveActivity extends BaseActivity {
         binding.buttonCopy.setOnClickListener(v -> copyAddress());
         binding.buttonSetAmount.setOnClickListener(v -> showSetAmountDialog());
         binding.buttonShare.setOnClickListener(v -> shareAddress());
+        binding.buttonDepositExchange.setOnClickListener(v -> showExchangeDialog());
     }
 
     private void copyAddress() {
@@ -105,31 +107,25 @@ public class ReceiveActivity extends BaseActivity {
     }
 
     private void showSetAmountDialog() {
-        EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        input.setSingleLine(true);
-        input.setHint(getString(R.string.receive_amount_hint));
+        View view = getLayoutInflater().inflate(R.layout.dialog_receive_amount, null);
+        EditText input = view.findViewById(R.id.inputReceiveAmount);
         input.setText(requestedAmountEth);
-        input.setSelectAllOnFocus(true);
-        input.setTextColor(Color.WHITE);
-        input.setHintTextColor(Color.parseColor("#B8C0CC"));
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.receive_set_amount))
-                .setMessage(getString(R.string.receive_request_subtitle))
-                .setView(input)
-                .setNegativeButton(getString(R.string.receive_clear_amount), null)
-                .setPositiveButton(getString(R.string.receive_save_amount), null)
+                .setView(view)
                 .create();
 
         dialog.setOnShowListener(dialogInterface -> {
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v -> {
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            }
+            view.findViewById(R.id.buttonClearAmount).setOnClickListener(v -> {
                 requestedAmountEth = "";
                 updateAmountSummary();
                 renderQrCode();
                 dialog.dismiss();
             });
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            view.findViewById(R.id.buttonSaveAmount).setOnClickListener(v -> {
                 String value = input.getText() == null ? "" : input.getText().toString().trim();
                 if (!isValidAmount(value)) {
                     input.setError(getString(R.string.receive_invalid_amount));
@@ -142,6 +138,44 @@ public class ReceiveActivity extends BaseActivity {
             });
         });
         dialog.show();
+    }
+
+    private void showExchangeDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_exchange_list, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(view)
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            }
+            view.findViewById(R.id.buttonExchangeBinance).setOnClickListener(v -> openExchangeApp(dialog, "Binance",
+                    "com.binance.dev",
+                    "com.binance.client",
+                    "com.binance.android",
+                    "com.binance.app",
+                    "us.binance.dev",
+                    "com.binance.us"));
+            view.findViewById(R.id.buttonExchangeCoinbase).setOnClickListener(v -> openExchangeApp(dialog, "Coinbase", "com.coinbase.android"));
+            view.findViewById(R.id.buttonExchangeKraken).setOnClickListener(v -> openExchangeApp(dialog, "Kraken", "com.kraken.invest.app"));
+            view.findViewById(R.id.buttonExchangeOkx).setOnClickListener(v -> openExchangeApp(dialog, "OKX", "com.okinc.okex.gp"));
+            view.findViewById(R.id.buttonExchangeIndodax).setOnClickListener(v -> openExchangeApp(dialog, "Indodax", "id.co.indodax"));
+        });
+        dialog.show();
+    }
+
+    private void openExchangeApp(AlertDialog dialog, String label, String... packageNames) {
+        for (String packageName : packageNames) {
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (launchIntent != null) {
+                dialog.dismiss();
+                startActivity(launchIntent);
+                return;
+            }
+        }
+        dialog.dismiss();
+        showMessage(getString(R.string.exchange_app_not_installed, label));
     }
 
     private boolean isValidAmount(String value) {

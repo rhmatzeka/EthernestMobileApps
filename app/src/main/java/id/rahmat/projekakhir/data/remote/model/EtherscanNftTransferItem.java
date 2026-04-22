@@ -25,6 +25,9 @@ public class EtherscanNftTransferItem {
     @SerializedName("tokenSymbol")
     public String tokenSymbol;
 
+    @SerializedName("tokenValue")
+    public String tokenValue;
+
     @SerializedName("timeStamp")
     public String timeStamp;
 }

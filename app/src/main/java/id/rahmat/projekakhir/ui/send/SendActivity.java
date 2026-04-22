@@ -3,6 +3,9 @@ package id.rahmat.projekakhir.ui.send;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.lifecycle.ViewModelProvider;
@@ -47,7 +50,13 @@ public class SendActivity extends BaseActivity {
 
         binding.buttonBack.setOnClickListener(v -> finish());
         binding.buttonScanQr.setOnClickListener(v -> startQrScanner());
+        binding.buttonPasteAddress.setOnClickListener(v -> pasteAddressFromClipboard());
+        binding.buttonMaxAmount.setOnClickListener(v -> {
+            showMessage(getString(R.string.send_max_loading));
+            viewModel.loadMaxAmount();
+        });
         binding.buttonConfirmSend.setOnClickListener(v -> sendTransaction());
+        binding.textDestinationNetwork.setText(viewModel.getSelectedNetworkName());
 
         binding.inputEthAmount.addTextChangedListener(new SimpleWatcher() {
             @Override
@@ -99,6 +108,36 @@ public class SendActivity extends BaseActivity {
             Snackbar.make(binding.getRoot(), getString(R.string.send_success), Snackbar.LENGTH_LONG).show();
             finish();
         });
+
+        viewModel.getMaxAmountState().observe(this, amount -> {
+            if (amount == null || amount.isEmpty()) {
+                showMessage(getString(R.string.wallet_not_ready));
+                return;
+            }
+            binding.inputEthAmount.setText(amount);
+            binding.inputEthAmount.setSelection(amount.length());
+        });
+    }
+
+    private void pasteAddressFromClipboard() {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboardManager == null || !clipboardManager.hasPrimaryClip()) {
+            showMessage(getString(R.string.send_clipboard_empty));
+            return;
+        }
+        ClipData clipData = clipboardManager.getPrimaryClip();
+        if (clipData == null || clipData.getItemCount() == 0) {
+            showMessage(getString(R.string.send_clipboard_empty));
+            return;
+        }
+        CharSequence text = clipData.getItemAt(0).coerceToText(this);
+        String address = normalizeScannedAddress(text == null ? "" : text.toString());
+        if (!walletManager.isValidAddress(address)) {
+            showMessage(getString(R.string.send_clipboard_empty));
+            return;
+        }
+        binding.inputRecipientAddress.setText(address);
+        binding.inputRecipientAddress.setSelection(address.length());
     }
 
     private void maybeEstimateGas() {
@@ -133,7 +172,7 @@ public class SendActivity extends BaseActivity {
         options.setPrompt(getString(R.string.scan_qr_action));
         options.setBeepEnabled(false);
         options.setCaptureActivity(PortraitCaptureActivity.class);
-        options.setOrientationLocked(false);
+        options.setOrientationLocked(true);
         qrLauncher.launch(options);
     }
 

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_surface"
+    android:orientation="vertical"
+    android:padding="22dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/buy_payment_dialog_title"
+        android:textColor="@color/mw_text_primary"
+        android:textSize="21sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/buy_payment_dialog_subtitle"
+        android:textColor="@color/mw_text_secondary"
+        android:textSize="13sp" />
+
+    <LinearLayout
+        android:id="@+id/buttonPaymentAll"
+        style="@style/Widget.MatsWallet.ExchangeRow"
+        android:layout_marginTop="18dp">
+
+        <TextView
+            style="@style/Widget.MatsWallet.PaymentMethodIcon"
+            android:text="ALL" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/buy_payment_all" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonPaymentQris"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <TextView
+            style="@style/Widget.MatsWallet.PaymentMethodIcon"
+            android:text="QR" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/buy_payment_qris" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonPaymentEwallet"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <TextView
+            style="@style/Widget.MatsWallet.PaymentMethodIcon"
+            android:text="EW" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/buy_payment_ewallet" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonPaymentBank"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <TextView
+            style="@style/Widget.MatsWallet.PaymentMethodIcon"
+            android:text="VA" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/buy_payment_bank" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonPaymentRetail"
+        style="@style/Widget.MatsWallet.ExchangeRow">
+
+        <TextView
+            style="@style/Widget.MatsWallet.PaymentMethodIcon"
+            android:text="RT" />
+
+        <TextView
+            style="@style/Widget.MatsWallet.ExchangeName"
+            android:text="@string/buy_payment_retail" />
+    </LinearLayout>
+</LinearLayout>

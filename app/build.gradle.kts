@@ -41,6 +41,8 @@ android {
         buildConfigField("String", "MATS_SWAP_POOL_ADDRESS", "\"${localProperty("MATS_SWAP_POOL_ADDRESS")}\"")
         buildConfigField("String", "IDRX_TOKEN_ADDRESS", "\"${localProperty("IDRX_TOKEN_ADDRESS")}\"")
         buildConfigField("String", "IDRX_SWAP_POOL_ADDRESS", "\"${localProperty("IDRX_SWAP_POOL_ADDRESS")}\"")
+        buildConfigField("String", "MIDTRANS_PAYMENT_URL", "\"${localProperty("MIDTRANS_PAYMENT_URL")}\"")
+        buildConfigField("String", "BUY_BACKEND_BASE_URL", "\"${localProperty("BUY_BACKEND_BASE_URL")}\"")
     }
 
     buildTypes {

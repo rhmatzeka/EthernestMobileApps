@@ -53,31 +53,31 @@
             android:textStyle="bold" />
 
         <FrameLayout
-            android:layout_width="218dp"
-            android:layout_height="218dp"
-            android:layout_marginTop="28dp">
+            android:layout_width="238dp"
+            android:layout_height="238dp"
+            android:layout_marginTop="26dp">
 
             <View
                 android:id="@+id/viewOuterRing"
-                android:layout_width="218dp"
-                android:layout_height="218dp"
+                android:layout_width="238dp"
+                android:layout_height="238dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_splash_ring" />
 
             <View
                 android:id="@+id/viewInnerRing"
-                android:layout_width="164dp"
-                android:layout_height="164dp"
+                android:layout_width="182dp"
+                android:layout_height="182dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_splash_ring" />
 
             <FrameLayout
                 android:id="@+id/logoCore"
-                android:layout_width="108dp"
-                android:layout_height="108dp"
+                android:layout_width="142dp"
+                android:layout_height="142dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_splash_logo_core"
-                android:padding="10dp">
+                android:padding="8dp">
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -137,10 +137,14 @@
         </LinearLayout>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:maxWidth="310dp"
             android:text="@string/splash_loading_status"
+            android:textAlignment="center"
             android:textColor="@color/mw_text_secondary"
             android:textSize="13sp" />
     </LinearLayout>

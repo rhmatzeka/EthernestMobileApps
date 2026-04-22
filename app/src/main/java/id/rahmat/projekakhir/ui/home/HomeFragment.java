@@ -12,10 +12,10 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.browser.customtabs.CustomTabsIntent;
 
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
@@ -28,14 +28,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import id.rahmat.projekakhir.R;
 import id.rahmat.projekakhir.databinding.FragmentHomeBinding;
 import id.rahmat.projekakhir.ui.base.BaseFragment;
+import id.rahmat.projekakhir.ui.buy.BuyActivity;
 import id.rahmat.projekakhir.ui.receive.ReceiveActivity;
 import id.rahmat.projekakhir.ui.send.SendActivity;
 
 public class HomeFragment extends BaseFragment {
 
     private static final int ASSET_TAB_CRYPTO = 0;
-    private static final int ASSET_TAB_WATCHLIST = 1;
-    private static final int ASSET_TAB_NFTS = 2;
+    private static final int ASSET_TAB_NFTS = 1;
 
     private FragmentHomeBinding binding;
     private HomeViewModel viewModel;
@@ -68,10 +68,7 @@ public class HomeFragment extends BaseFragment {
     private void setupActions() {
         binding.buttonSend.setOnClickListener(v -> startActivity(new Intent(requireContext(), SendActivity.class)));
         binding.buttonReceive.setOnClickListener(v -> startActivity(new Intent(requireContext(), ReceiveActivity.class)));
-        binding.buttonBuy.setOnClickListener(v -> {
-            CustomTabsIntent intent = new CustomTabsIntent.Builder().build();
-            intent.launchUrl(requireContext(), android.net.Uri.parse("https://www.coingecko.com/en/coins/ethereum"));
-        });
+        binding.buttonBuy.setOnClickListener(v -> startActivity(new Intent(requireContext(), BuyActivity.class)));
         binding.buttonRefresh.setOnClickListener(v -> {
             binding.homeSwipeRefresh.setRefreshing(true);
             viewModel.refresh();
@@ -115,7 +112,6 @@ public class HomeFragment extends BaseFragment {
 
     private void setupAssetTabs() {
         binding.tabCrypto.setOnClickListener(v -> selectAssetTab(ASSET_TAB_CRYPTO));
-        binding.tabWatchlist.setOnClickListener(v -> selectAssetTab(ASSET_TAB_WATCHLIST));
         binding.tabNfts.setOnClickListener(v -> selectAssetTab(ASSET_TAB_NFTS));
         selectAssetTab(ASSET_TAB_CRYPTO);
     }
@@ -131,15 +127,12 @@ public class HomeFragment extends BaseFragment {
 
     private void renderAssetTabs() {
         boolean cryptoSelected = selectedAssetTab == ASSET_TAB_CRYPTO;
-        boolean watchlistSelected = selectedAssetTab == ASSET_TAB_WATCHLIST;
         boolean nftsSelected = selectedAssetTab == ASSET_TAB_NFTS;
 
         binding.textTabCrypto.setTextColor(getColor(cryptoSelected));
-        binding.textTabWatchlist.setTextColor(getColor(watchlistSelected));
         binding.textTabNfts.setTextColor(getColor(nftsSelected));
 
         binding.indicatorTabCrypto.setVisibility(cryptoSelected ? View.VISIBLE : View.INVISIBLE);
-        binding.indicatorTabWatchlist.setVisibility(watchlistSelected ? View.VISIBLE : View.INVISIBLE);
         binding.indicatorTabNfts.setVisibility(nftsSelected ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -156,12 +149,10 @@ public class HomeFragment extends BaseFragment {
         }
 
         boolean showCrypto = selectedAssetTab == ASSET_TAB_CRYPTO;
-        boolean showWatchlist = selectedAssetTab == ASSET_TAB_WATCHLIST;
         boolean showNfts = selectedAssetTab == ASSET_TAB_NFTS;
         boolean hasNfts = currentNfts != null && !currentNfts.isEmpty();
 
         binding.recyclerTokens.setVisibility(showCrypto ? View.VISIBLE : View.GONE);
-        binding.layoutWatchlistEmpty.setVisibility(showWatchlist ? View.VISIBLE : View.GONE);
         binding.recyclerNfts.setVisibility(showNfts && hasNfts ? View.VISIBLE : View.GONE);
         binding.layoutNftEmpty.setVisibility(showNfts && !hasNfts ? View.VISIBLE : View.GONE);
     }
