@@ -31,24 +31,33 @@ public class HomeViewModel extends AndroidViewModel {
         public final String address;
         public final String shortAddress;
         public final String networkName;
-        public final String balanceEth;
+        public final String nativeAssetName;
+        public final String nativeAssetSymbol;
+        public final String balancePrimary;
         public final String balanceIdr;
         public final String balanceUsd;
+        public final String chartTitle;
+        public final String chartSubtitle;
         public final List<TokenItem> assets;
         public final List<NftItem> nfts;
         public final List<CandleEntry> chartEntries;
         public final String errorMessage;
 
         public HomeUiState(String address, String shortAddress, String networkName,
-                           String balanceEth, String balanceIdr, String balanceUsd,
+                           String nativeAssetName, String nativeAssetSymbol, String balancePrimary,
+                           String balanceIdr, String balanceUsd, String chartTitle, String chartSubtitle,
                            List<TokenItem> assets, List<NftItem> nfts,
                            List<CandleEntry> chartEntries, String errorMessage) {
             this.address = address;
             this.shortAddress = shortAddress;
             this.networkName = networkName;
-            this.balanceEth = balanceEth;
+            this.nativeAssetName = nativeAssetName;
+            this.nativeAssetSymbol = nativeAssetSymbol;
+            this.balancePrimary = balancePrimary;
             this.balanceIdr = balanceIdr;
             this.balanceUsd = balanceUsd;
+            this.chartTitle = chartTitle;
+            this.chartSubtitle = chartSubtitle;
             this.assets = assets;
             this.nfts = nfts;
             this.chartEntries = chartEntries;
@@ -76,32 +85,43 @@ public class HomeViewModel extends AndroidViewModel {
         AppExecutors.io().execute(() -> {
             try {
                 WalletSnapshot snapshot = walletRepository.loadWalletSnapshot();
-                List<CandleEntry> chartEntries = priceRepository.getSevenDayCandleEntries();
+                List<CandleEntry> chartEntries = priceRepository.getSevenDayCandleEntries(walletRepository.getSelectedNetwork());
                 List<TokenBalance> tokenBalances = walletRepository.loadTokenBalances();
                 List<TokenItem> tokenItems = buildAssetList(snapshot, tokenBalances);
                 List<NftItem> nftItems = buildNftList(safeLoadNfts(snapshot.getAddress()));
 
-                BigDecimal totalIdr = FormatUtils.safeMultiply(snapshot.getEthBalance(), snapshot.getEthPriceIdr());
-                BigDecimal totalUsd = FormatUtils.safeMultiply(snapshot.getEthBalance(), snapshot.getEthPriceUsd());
+                BigDecimal totalIdr = FormatUtils.safeMultiply(snapshot.getNativeBalance(), snapshot.getNativePriceIdr());
+                BigDecimal totalUsd = FormatUtils.safeMultiply(snapshot.getNativeBalance(), snapshot.getNativePriceUsd());
 
                 uiState.postValue(new HomeUiState(
                         snapshot.getAddress(),
                         shortenAddress(snapshot.getAddress()),
                         snapshot.getNetworkName(),
-                        FormatUtils.formatEth(snapshot.getEthBalance()),
+                        snapshot.getNativeAssetName(),
+                        snapshot.getNativeAssetSymbol(),
+                        FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
                         FormatUtils.formatIdr(totalIdr),
                         FormatUtils.formatUsd(totalUsd),
+                        getApplication().getString(R.string.native_chart_title, snapshot.getNativeAssetSymbol()),
+                        getApplication().getString(R.string.native_chart_subtitle, snapshot.getNativeAssetSymbol()),
                         tokenItems,
                         nftItems,
                         chartEntries,
                         null
                 ));
             } catch (Exception exception) {
+                String networkName = walletRepository.getSelectedNetwork().getDisplayName();
+                String nativeAssetName = walletRepository.getSelectedNetwork().getNativeAssetName();
+                String nativeAssetSymbol = walletRepository.getSelectedNetwork().getNativeSymbol();
                 uiState.postValue(new HomeUiState(
-                        "", "", walletRepository.getSelectedNetwork().getDisplayName(),
-                        FormatUtils.formatEth(BigDecimal.ZERO),
+                        "", "", networkName,
+                        nativeAssetName,
+                        nativeAssetSymbol,
+                        FormatUtils.formatToken(BigDecimal.ZERO, nativeAssetSymbol),
                         FormatUtils.formatIdr(BigDecimal.ZERO),
                         FormatUtils.formatUsd(BigDecimal.ZERO),
+                        getApplication().getString(R.string.native_chart_title, nativeAssetSymbol),
+                        getApplication().getString(R.string.native_chart_subtitle, nativeAssetSymbol),
                         Collections.emptyList(),
                         Collections.emptyList(),
                         new ArrayList<>(),
@@ -116,33 +136,35 @@ public class HomeViewModel extends AndroidViewModel {
             return Collections.emptyList();
         }
 
-        BigDecimal assetIdr = FormatUtils.safeMultiply(snapshot.getEthBalance(), snapshot.getEthPriceIdr());
         List<TokenItem> items = new ArrayList<>();
-        items.add(new TokenItem(
-                "Ethereum",
-                snapshot.getNetworkName(),
-                FormatUtils.formatEth(snapshot.getEthBalance()),
-                FormatUtils.formatIdr(assetIdr),
-                null,
-                resolveTokenIconRes("ETH")
-        ));
+        if (tokenBalances == null || tokenBalances.isEmpty()) {
+            BigDecimal assetIdr = FormatUtils.safeMultiply(snapshot.getNativeBalance(), snapshot.getNativePriceIdr());
+            items.add(new TokenItem(
+                    snapshot.getNativeAssetSymbol(),
+                    snapshot.getNetworkName(),
+                    snapshot.getNativeAssetName(),
+                    FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
+                    FormatUtils.formatIdr(assetIdr),
+                    null,
+                    resolveTokenIconRes(snapshot.getNativeAssetSymbol())
+            ));
+            return items;
+        }
 
-        if (tokenBalances != null) {
-            for (TokenBalance token : tokenBalances) {
-                BigDecimal tokenTotalIdr = FormatUtils.safeMultiply(token.balance, token.unitPriceIdr);
-                String subtitle = snapshot.getNetworkName();
-                String fiatValue = token.unitPriceIdr.compareTo(BigDecimal.ZERO) > 0
-                        ? FormatUtils.formatIdr(tokenTotalIdr)
-                        : getApplication().getString(R.string.token_value_unavailable);
-                items.add(new TokenItem(
-                        token.name,
-                        subtitle,
-                        FormatUtils.formatToken(token.balance, token.symbol),
-                        fiatValue,
-                        token.imageUrl,
-                        resolveTokenIconRes(token.symbol)
-                ));
-            }
+        for (TokenBalance token : tokenBalances) {
+            BigDecimal tokenTotalIdr = FormatUtils.safeMultiply(token.balance, token.unitPriceIdr);
+            String fiatValue = token.unitPriceIdr.compareTo(BigDecimal.ZERO) > 0
+                    ? FormatUtils.formatIdr(tokenTotalIdr)
+                    : getApplication().getString(R.string.token_value_unavailable);
+            items.add(new TokenItem(
+                    token.symbol,
+                    token.networkName,
+                    token.name,
+                    FormatUtils.formatToken(token.balance, token.symbol),
+                    fiatValue,
+                    token.imageUrl,
+                    resolveTokenIconRes(token.symbol)
+            ));
         }
         return items;
     }
@@ -183,13 +205,25 @@ public class HomeViewModel extends AndroidViewModel {
             return 0;
         }
         if ("ETH".equalsIgnoreCase(symbol)) {
-            return R.drawable.ic_token_eth;
+            return R.drawable.ic_token_eth_real;
         }
         if ("MATS".equalsIgnoreCase(symbol)) {
             return R.drawable.ic_token_mats;
         }
         if ("IDRX".equalsIgnoreCase(symbol)) {
             return R.drawable.ic_token_idrx;
+        }
+        if ("BNB".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_bnb_real;
+        }
+        if ("AVAX".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_avax_real;
+        }
+        if ("POL".equalsIgnoreCase(symbol) || "MATIC".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_polygon_real;
+        }
+        if ("FTM".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_fantom;
         }
         return 0;
     }

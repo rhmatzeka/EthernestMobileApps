@@ -173,7 +173,7 @@ public class HomeFragment extends BaseFragment {
         binding.chartEthPrice.getAxisRight().setEnabled(false);
         binding.chartEthPrice.getLegend().setForm(Legend.LegendForm.NONE);
         binding.chartEthPrice.getLegend().setEnabled(false);
-        binding.chartEthPrice.setNoDataText(getString(R.string.eth_chart_loading));
+        binding.chartEthPrice.setNoDataText(getString(R.string.native_chart_loading));
         binding.chartEthPrice.setMaxVisibleValueCount(16);
 
         Description description = new Description();
@@ -201,9 +201,11 @@ public class HomeFragment extends BaseFragment {
             binding.homeSwipeRefresh.setRefreshing(false);
             currentWalletAddress = state.address;
             binding.textWalletAddress.setText(state.shortAddress);
-            binding.textEthBalance.setText(state.balanceEth);
+            binding.textEthBalance.setText(state.balancePrimary);
             binding.textFiatBalance.setText(state.balanceIdr + " | " + state.balanceUsd);
             binding.textNetworkBadge.setText(state.networkName);
+            binding.textChartTitle.setText(state.chartTitle);
+            binding.textChartSubtitle.setText(state.chartSubtitle);
 
             tokenAdapter = new TokenAdapter(state.assets);
             binding.recyclerTokens.setAdapter(tokenAdapter);
@@ -215,10 +217,10 @@ public class HomeFragment extends BaseFragment {
 
             if (state.chartEntries == null || state.chartEntries.isEmpty()) {
                 binding.chartEthPrice.clear();
-                binding.chartEthPrice.setNoDataText(getString(R.string.eth_chart_loading));
+                binding.chartEthPrice.setNoDataText(getString(R.string.native_chart_loading));
                 binding.chartEthPrice.invalidate();
             } else {
-                CandleDataSet dataSet = new CandleDataSet(state.chartEntries, "ETH");
+                CandleDataSet dataSet = new CandleDataSet(state.chartEntries, state.nativeAssetSymbol);
                 dataSet.setShadowColorSameAsCandle(true);
                 dataSet.setIncreasingColor(Color.parseColor("#3DD598"));
                 dataSet.setIncreasingPaintStyle(android.graphics.Paint.Style.FILL);

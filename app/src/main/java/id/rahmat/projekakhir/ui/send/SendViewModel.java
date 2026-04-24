@@ -17,6 +17,7 @@ import id.rahmat.projekakhir.di.ServiceLocator;
 import id.rahmat.projekakhir.R;
 import id.rahmat.projekakhir.utils.AppExecutors;
 import id.rahmat.projekakhir.utils.FormatUtils;
+import id.rahmat.projekakhir.wallet.EthereumNetwork;
 import id.rahmat.projekakhir.wallet.EthereumService;
 import id.rahmat.projekakhir.wallet.GasEstimation;
 import id.rahmat.projekakhir.wallet.WalletSnapshot;
@@ -61,6 +62,27 @@ public class SendViewModel extends AndroidViewModel {
         return walletRepository.getSelectedNetwork().getDisplayName();
     }
 
+    public String getSelectedNetworkSymbol() {
+        return walletRepository.getSelectedNetwork().getNativeSymbol();
+    }
+
+    public int getSelectedNetworkIconRes() {
+        EthereumNetwork network = walletRepository.getSelectedNetwork();
+        if (EthereumNetwork.BSC.isSameNetwork(network)) {
+            return R.drawable.ic_token_bnb_real;
+        }
+        if (EthereumNetwork.AVALANCHE.isSameNetwork(network)) {
+            return R.drawable.ic_token_avax_real;
+        }
+        if ("POL".equalsIgnoreCase(network.getNativeSymbol()) || "MATIC".equalsIgnoreCase(network.getNativeSymbol())) {
+            return R.drawable.ic_token_polygon_real;
+        }
+        if ("FTM".equalsIgnoreCase(network.getNativeSymbol())) {
+            return R.drawable.ic_token_fantom;
+        }
+        return R.drawable.ic_token_eth_real;
+    }
+
     public void estimateGas(String toAddress, String amountEth) {
         AppExecutors.io().execute(() -> {
             try {
@@ -82,7 +104,7 @@ public class SendViewModel extends AndroidViewModel {
         AppExecutors.io().execute(() -> {
             try {
                 BigDecimal amount = new BigDecimal(amountEth);
-                PriceRepository.PriceSnapshot priceSnapshot = priceRepository.getLatestEthPrice();
+                PriceRepository.PriceSnapshot priceSnapshot = priceRepository.getLatestPrice(walletRepository.getSelectedNetwork());
                 if (priceSnapshot == null
                         || BigDecimal.ZERO.compareTo(priceSnapshot.idr) == 0
                         || BigDecimal.ZERO.compareTo(priceSnapshot.usd) == 0) {

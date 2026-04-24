@@ -47,8 +47,9 @@ public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHol
         }
 
         void bind(TokenItem item) {
+            binding.textTokenSymbol.setText(item.getSymbol());
+            binding.textTokenBadge.setText(item.getBadge());
             binding.textTokenName.setText(item.getName());
-            binding.textTokenSubtitle.setText(item.getSubtitle());
             binding.textTokenBalance.setText(item.getBalance());
             binding.textTokenFiat.setText(item.getFiatValue());
 
@@ -58,7 +59,6 @@ public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHol
             } else {
                 Glide.with(binding.imageToken.getContext())
                         .load(item.getImageUrl())
-                        .circleCrop()
                         .into(binding.imageToken);
             }
         }

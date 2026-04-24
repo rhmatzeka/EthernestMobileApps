@@ -30,6 +30,7 @@
                 android:src="@drawable/ic_back_24" />
 
             <TextView
+                android:id="@+id/textSendTitle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
@@ -117,9 +118,10 @@
             android:paddingHorizontal="14dp">
 
             <ImageView
+                android:id="@+id/imageDestinationNetworkIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:src="@drawable/ic_token_eth" />
+                android:src="@drawable/ic_token_eth_real" />
 
             <TextView
                 android:id="@+id/textDestinationNetwork"
@@ -165,6 +167,7 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/textAmountSymbol"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/receive_asset_symbol"

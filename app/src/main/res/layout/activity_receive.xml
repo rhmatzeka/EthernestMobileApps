@@ -31,6 +31,7 @@
                 android:src="@drawable/ic_back_24" />
 
             <TextView
+                android:id="@+id/textReceiveTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -45,7 +46,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@drawable/bg_pin_key_action"
-                android:contentDescription="@string/receive_info_message"
+                android:contentDescription="@string/receive_screen_title"
                 android:padding="10dp"
                 android:src="@drawable/ic_info_24" />
         </LinearLayout>
@@ -71,11 +72,12 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/textReceiveWarning"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="14dp"
                 android:layout_weight="1"
-                android:text="@string/receive_asset_warning"
+                android:text="@string/receive_screen_subtitle"
                 android:textColor="@color/mw_text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -89,11 +91,13 @@
             android:orientation="horizontal">
 
             <ImageView
+                android:id="@+id/imageReceiveAssetIcon"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@drawable/ic_token_eth" />
+                android:src="@drawable/ic_token_eth_real" />
 
             <TextView
+                android:id="@+id/textReceiveAssetSymbol"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"

@@ -25,12 +25,14 @@ import id.rahmat.projekakhir.databinding.ActivityReceiveBinding;
 import id.rahmat.projekakhir.di.ServiceLocator;
 import id.rahmat.projekakhir.ui.base.BaseActivity;
 import id.rahmat.projekakhir.utils.WindowInsetsHelper;
+import id.rahmat.projekakhir.wallet.EthereumNetwork;
 
 public class ReceiveActivity extends BaseActivity {
 
     private ActivityReceiveBinding binding;
     private String receiveAddress = "";
     private String requestedAmountEth = "";
+    private EthereumNetwork selectedNetwork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,14 +41,18 @@ public class ReceiveActivity extends BaseActivity {
         setContentView(binding.getRoot());
         WindowInsetsHelper.applySystemBarPadding(binding.receiveRoot, true, true);
 
+        selectedNetwork = ServiceLocator.getWalletRepository(this).getSelectedNetwork();
         receiveAddress = ServiceLocator.getWalletRepository(this).getWalletAddress();
+        renderNetworkUi();
         binding.textReceiveAddress.setText(receiveAddress.isEmpty() ? getString(R.string.wallet_not_ready) : receiveAddress);
         binding.textReceiveQrAddress.setText(formatQrAddress(receiveAddress));
         updateAmountSummary();
         renderQrCode();
 
         binding.buttonBack.setOnClickListener(v -> finish());
-        binding.buttonInfo.setOnClickListener(v -> showMessage(getString(R.string.receive_info_message)));
+        binding.buttonInfo.setOnClickListener(v -> showMessage(
+                getString(R.string.receive_info_message, selectedNetwork.getNativeSymbol())
+        ));
         binding.buttonCopy.setOnClickListener(v -> copyAddress());
         binding.buttonSetAmount.setOnClickListener(v -> showSetAmountDialog());
         binding.buttonShare.setOnClickListener(v -> shareAddress());
@@ -74,9 +80,10 @@ public class ReceiveActivity extends BaseActivity {
         Intent sendIntent = new Intent(Intent.ACTION_SEND);
         sendIntent.setType("text/plain");
         String amount = requestedAmountEth;
+        String nativeSymbol = selectedNetwork.getNativeSymbol();
         String shareText = amount.isEmpty()
                 ? address
-                : "Kirim " + amount + " ETH ke " + address + "\n" + buildEthereumPayload(address);
+                : "Kirim " + amount + " " + nativeSymbol + " ke " + address + "\n" + buildEthereumPayload(address);
         sendIntent.putExtra(Intent.EXTRA_TEXT, shareText);
         startActivity(Intent.createChooser(sendIntent, getString(R.string.share_action)));
     }
@@ -190,8 +197,39 @@ public class ReceiveActivity extends BaseActivity {
         if (requestedAmountEth == null || requestedAmountEth.isEmpty()) {
             binding.textReceiveAmountSummary.setText(R.string.receive_amount_not_set);
         } else {
-            binding.textReceiveAmountSummary.setText(getString(R.string.receive_amount_summary, requestedAmountEth));
+            binding.textReceiveAmountSummary.setText(getString(
+                    R.string.receive_amount_summary,
+                    requestedAmountEth,
+                    selectedNetwork.getNativeSymbol()
+            ));
         }
+    }
+
+    private void renderNetworkUi() {
+        binding.textReceiveTitle.setText(getString(R.string.receive_screen_title_format, selectedNetwork.getNativeSymbol()));
+        binding.textReceiveWarning.setText(getString(
+                R.string.receive_asset_warning,
+                selectedNetwork.getNativeAssetName(),
+                selectedNetwork.getNativeSymbol()
+        ));
+        binding.textReceiveAssetSymbol.setText(selectedNetwork.getNativeSymbol());
+        binding.imageReceiveAssetIcon.setImageResource(resolveNetworkIcon(selectedNetwork));
+    }
+
+    private int resolveNetworkIcon(EthereumNetwork network) {
+        if (EthereumNetwork.BSC.isSameNetwork(network)) {
+            return R.drawable.ic_token_bnb_real;
+        }
+        if (EthereumNetwork.AVALANCHE.isSameNetwork(network)) {
+            return R.drawable.ic_token_avax_real;
+        }
+        if ("POL".equalsIgnoreCase(network.getNativeSymbol()) || "MATIC".equalsIgnoreCase(network.getNativeSymbol())) {
+            return R.drawable.ic_token_polygon_real;
+        }
+        if ("FTM".equalsIgnoreCase(network.getNativeSymbol())) {
+            return R.drawable.ic_token_fantom;
+        }
+        return R.drawable.ic_token_eth_real;
     }
 
     private String formatQrAddress(String address) {

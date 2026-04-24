@@ -56,14 +56,18 @@ public class SendActivity extends BaseActivity {
             viewModel.loadMaxAmount();
         });
         binding.buttonConfirmSend.setOnClickListener(v -> sendTransaction());
+        binding.textSendTitle.setText(getString(R.string.send_screen_title_format, viewModel.getSelectedNetworkSymbol()));
         binding.textDestinationNetwork.setText(viewModel.getSelectedNetworkName());
+        binding.imageDestinationNetworkIcon.setImageResource(viewModel.getSelectedNetworkIconRes());
+        binding.textAmountSymbol.setText(viewModel.getSelectedNetworkSymbol());
+        renderEmptyGasState();
 
         binding.inputEthAmount.addTextChangedListener(new SimpleWatcher() {
             @Override
             public void afterTextChanged(Editable editable) {
                 String amount = editable == null ? "" : editable.toString().trim();
                 if (amount.isEmpty()) {
-                    binding.textGasFee.setText(getString(R.string.gas_fee_value));
+                    renderEmptyGasState();
                     binding.inputFiatAmount.setText("");
                     return;
                 }
@@ -163,7 +167,7 @@ public class SendActivity extends BaseActivity {
             showMessage(getString(R.string.scan_invalid));
             return;
         }
-        showMessage(getString(R.string.confirm_send_summary, amount + " ETH", to));
+        showMessage(getString(R.string.confirm_send_summary, amount + " " + viewModel.getSelectedNetworkSymbol(), to));
         viewModel.send(to, amount);
     }
 
@@ -202,7 +206,12 @@ public class SendActivity extends BaseActivity {
     }
 
     private String formatGas(GasEstimation gasEstimation) {
-        return gasEstimation.getGasFeeEth().toPlainString() + " ETH | gas " + gasEstimation.getGasLimit();
+        return gasEstimation.getGasFeeEth().toPlainString() + " " + viewModel.getSelectedNetworkSymbol()
+                + " | gas " + gasEstimation.getGasLimit();
+    }
+
+    private void renderEmptyGasState() {
+        binding.textGasFee.setText("0 " + viewModel.getSelectedNetworkSymbol() + " | gas -");
     }
 
     private String getFieldValue(CharSequence value) {

@@ -272,18 +272,20 @@
                 android:padding="18dp">
 
                 <TextView
+                    android:id="@+id/textChartTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/eth_chart_title"
+                    android:text="@string/native_chart_loading"
                     android:textColor="@color/mw_text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/textChartSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="@string/eth_chart_subtitle"
+                    android:text="@string/native_chart_loading"
                     android:textColor="@color/mw_text_secondary"
                     android:textSize="13sp" />
 
@@ -299,9 +301,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
-                android:background="@drawable/bg_card_surface"
+                android:background="@drawable/bg_asset_section_shell"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -408,7 +410,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_divider" />
+                    android:background="@drawable/bg_asset_section_divider" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerTokens"
