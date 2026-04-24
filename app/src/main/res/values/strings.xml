@@ -238,6 +238,10 @@
     <string name="swap_asset_picker_title">Pilih token swap</string>
     <string name="swap_asset_picker_subtitle">Pilih token yang mau dipakai di sisi from atau to. Token tanpa pool aktif akan ditandai segera hadir.</string>
     <string name="swap_asset_name_eth">Ethereum</string>
+    <string name="swap_asset_name_bnb">BNB Smart Chain</string>
+    <string name="swap_asset_name_avax">Avalanche</string>
+    <string name="swap_asset_name_pol">Polygon</string>
+    <string name="swap_asset_name_ftm">Fantom</string>
     <string name="swap_asset_name_mats">Mats Token</string>
     <string name="swap_asset_name_idrx">IDRX Token</string>
     <string name="swap_asset_status_ready">Aktif</string>

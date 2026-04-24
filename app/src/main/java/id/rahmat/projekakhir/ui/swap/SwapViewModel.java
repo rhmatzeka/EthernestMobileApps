@@ -134,20 +134,20 @@ public class SwapViewModel extends AndroidViewModel {
     public String getAssetName(Asset asset) {
         switch (asset) {
             case IDRX:
-                return "IDRX Token";
+                return getApplication().getString(R.string.swap_asset_name_idrx);
             case ETH:
-                return "Ethereum";
+                return getApplication().getString(R.string.swap_asset_name_eth);
             case BNB:
-                return "BNB Smart Chain";
+                return getApplication().getString(R.string.swap_asset_name_bnb);
             case AVAX:
-                return "Avalanche";
+                return getApplication().getString(R.string.swap_asset_name_avax);
             case POL:
-                return "Polygon";
+                return getApplication().getString(R.string.swap_asset_name_pol);
             case FTM:
-                return "Fantom";
+                return getApplication().getString(R.string.swap_asset_name_ftm);
             case MATS:
             default:
-                return "Mats Token";
+                return getApplication().getString(R.string.swap_asset_name_mats);
         }
     }
 
