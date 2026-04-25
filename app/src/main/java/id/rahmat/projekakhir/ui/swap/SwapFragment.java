@@ -201,6 +201,7 @@ public class SwapFragment extends BaseFragment {
 
     private void openAssetPickerIfNeeded() {
         if (assetOptions.isEmpty()) {
+            showMessage(getString(R.string.swap_no_active_pool));
             return;
         }
 
@@ -226,30 +227,20 @@ public class SwapFragment extends BaseFragment {
             ImageView imageSelected = row.findViewById(R.id.imageSwapAssetSelected);
 
             boolean isSelected = asset == viewModel.getSelectedAsset();
-            boolean isReady = viewModel.isSwapReady(asset);
             imageIcon.setImageResource(getAssetIcon(asset));
             textSymbol.setText(viewModel.getAssetSymbol(asset));
             textName.setText(getAssetName(asset));
             textStatus.setText(isSelected
                     ? getString(R.string.swap_asset_status_selected)
-                    : getString(isReady ? R.string.swap_asset_status_ready : R.string.swap_coming_soon_action));
-            textStatus.setBackgroundResource(isReady
-                    ? R.drawable.bg_swap_asset_status_ready
-                    : R.drawable.bg_swap_asset_status_soon);
+                    : getString(R.string.swap_asset_status_ready));
+            textStatus.setBackgroundResource(R.drawable.bg_swap_asset_status_ready);
 
             if (isSelected) {
                 rowRoot.setBackgroundResource(R.drawable.bg_swap_asset_option_selected);
                 imageSelected.setVisibility(View.VISIBLE);
             }
-            if (!isReady) {
-                rowRoot.setAlpha(0.78f);
-            }
 
             rowRoot.setOnClickListener(v -> {
-                if (!isReady) {
-                    showMessage(getString(R.string.swap_asset_picker_unavailable, viewModel.getAssetSymbol(asset)));
-                    return;
-                }
                 viewModel.setSelectedAsset(asset);
                 syncSwapUi();
                 refreshQuote();
@@ -266,16 +257,12 @@ public class SwapFragment extends BaseFragment {
         switch (asset) {
             case IDRX:
                 return R.drawable.ic_token_idrx;
-            case ETH:
-                return R.drawable.ic_token_eth_real;
-            case BNB:
-                return R.drawable.ic_token_bnb_real;
-            case AVAX:
-                return R.drawable.ic_token_avax_real;
-            case POL:
-                return R.drawable.ic_token_polygon_real;
-            case FTM:
-                return R.drawable.ic_token_fantom;
+            case CUSTOM_1:
+            case CUSTOM_2:
+            case CUSTOM_3:
+            case CUSTOM_4:
+            case CUSTOM_5:
+                return R.drawable.ic_token_custom;
             case MATS:
             default:
                 return R.drawable.ic_token_mats;

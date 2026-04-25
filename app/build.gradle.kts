@@ -15,6 +15,11 @@ fun localProperty(name: String, defaultValue: String = ""): String {
     return localProperties.getProperty(name, defaultValue)
 }
 
+fun localIntProperty(name: String, defaultValue: Int = 18): String {
+    return localProperties.getProperty(name)?.trim()?.toIntOrNull()?.toString()
+        ?: defaultValue.toString()
+}
+
 android {
     namespace = "id.rahmat.projekakhir"
     compileSdk = 36
@@ -48,6 +53,13 @@ android {
         buildConfigField("String", "MATS_SWAP_POOL_ADDRESS", "\"${localProperty("MATS_SWAP_POOL_ADDRESS")}\"")
         buildConfigField("String", "IDRX_TOKEN_ADDRESS", "\"${localProperty("IDRX_TOKEN_ADDRESS")}\"")
         buildConfigField("String", "IDRX_SWAP_POOL_ADDRESS", "\"${localProperty("IDRX_SWAP_POOL_ADDRESS")}\"")
+        for (index in 1..5) {
+            buildConfigField("String", "SWAP_TOKEN_${index}_NAME", "\"${localProperty("SWAP_TOKEN_${index}_NAME")}\"")
+            buildConfigField("String", "SWAP_TOKEN_${index}_SYMBOL", "\"${localProperty("SWAP_TOKEN_${index}_SYMBOL")}\"")
+            buildConfigField("String", "SWAP_TOKEN_${index}_ADDRESS", "\"${localProperty("SWAP_TOKEN_${index}_ADDRESS")}\"")
+            buildConfigField("String", "SWAP_TOKEN_${index}_POOL_ADDRESS", "\"${localProperty("SWAP_TOKEN_${index}_POOL_ADDRESS")}\"")
+            buildConfigField("int", "SWAP_TOKEN_${index}_DECIMALS", localIntProperty("SWAP_TOKEN_${index}_DECIMALS"))
+        }
         buildConfigField("String", "MIDTRANS_PAYMENT_URL", "\"${localProperty("MIDTRANS_PAYMENT_URL")}\"")
         buildConfigField("String", "BUY_BACKEND_BASE_URL", "\"${localProperty("BUY_BACKEND_BASE_URL")}\"")
     }

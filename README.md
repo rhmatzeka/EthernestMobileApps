@@ -8,8 +8,8 @@ Ethernest adalah aplikasi Android e-wallet multi-chain berbasis Java dengan tamp
 - Saldo ETH, token ERC-20, NFT ERC-721/ERC-1155, chart candlestick, serta histori transaksi.
 - Home asset list multi-chain dengan icon coin real untuk ETH, BNB, AVAX, dan Polygon.
 - Kirim dan terima ETH dengan QR, set amount, share address, dan deposit from exchange.
-- Swap testnet untuk MATS dan IDRX melalui smart contract pool sederhana.
-- UI swap sekarang memakai kartu `From/To`, picker token custom, dan daftar aset yang lebih luas untuk preview route swap.
+- Swap testnet real untuk MATS, IDRX, dan slot token tambahan yang sudah punya pool on-chain.
+- UI swap sekarang memakai kartu `From/To`, picker token custom, dan hanya menampilkan token dengan route pool aktif.
 - Buy ETH dengan halaman pembayaran in-app WebView, backend Midtrans, dan harga ETH/IDR realtime.
 
 ## Tech Stack
@@ -33,6 +33,11 @@ MATS_TOKEN_ADDRESS=xxx
 MATS_SWAP_POOL_ADDRESS=xxx
 IDRX_TOKEN_ADDRESS=xxx
 IDRX_SWAP_POOL_ADDRESS=xxx
+SWAP_TOKEN_1_NAME=Example Token
+SWAP_TOKEN_1_SYMBOL=EXT
+SWAP_TOKEN_1_ADDRESS=xxx
+SWAP_TOKEN_1_POOL_ADDRESS=xxx
+SWAP_TOKEN_1_DECIMALS=18
 BUY_BACKEND_BASE_URL=http://10.0.2.2:8787/
 MIDTRANS_PAYMENT_URL=
 ```
@@ -91,8 +96,9 @@ https://domain-kamu.com/api/midtrans/notification
 Folder `smart-contracts` berisi ERC-20 token dan pool swap testnet.
 
 Catatan swap:
-- Route swap on-chain yang benar-benar aktif saat ini masih mengikuti pool yang kamu deploy, default-nya `MATS` dan `IDRX`.
-- Token lain sudah bisa muncul di picker swap untuk roadmap multi-asset, tapi akan ditandai `Segera hadir` sampai pool/router-nya tersedia.
+- Route swap on-chain aktif mengikuti pool yang kamu deploy, default-nya `MATS` dan `IDRX`.
+- Token tambahan bisa dipakai real swap setelah punya token address, pool address, dan liquidity. Isi slot `SWAP_TOKEN_1..5` di `local.properties`, lalu token otomatis muncul di picker.
+- Token tanpa pool tidak ditampilkan di picker agar tidak terlihat aktif padahal belum bisa transaksi.
 
 Langkah cepat:
 ```
@@ -107,6 +113,9 @@ DEPLOYER_PRIVATE_KEY=xxx (tanpa 0x)
 TOKEN_NAME=Mats Token
 TOKEN_SYMBOL=MATS
 TOKEN_INITIAL_SUPPLY=1000000
+POOL_TOKEN_SYMBOL=MATS
+POOL_TOKEN_ADDRESS=your_token_address_for_pool
+POOL_SWAP_ADDRESS=your_pool_address_for_seed
 ```
 
 Compile dan deploy:
@@ -116,6 +125,8 @@ npm run deploy:token
 npm run deploy:pool
 npm run seed:pool
 ```
+
+Untuk deploy pool token lain, isi `POOL_TOKEN_SYMBOL` dan `POOL_TOKEN_ADDRESS`, jalankan `npm run deploy:pool`, lalu salin output `SWAP_TOKEN_1_*` ke `local.properties`. Setelah pool terisi liquidity via `npm run seed:pool`, swap token itu bisa dipakai dari aplikasi.
 
 ## Keamanan
 - Private key user disimpan terenkripsi di Android Keystore/EncryptedSharedPreferences.

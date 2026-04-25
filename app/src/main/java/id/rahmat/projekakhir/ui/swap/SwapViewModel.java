@@ -29,23 +29,26 @@ public class SwapViewModel extends AndroidViewModel {
     public enum Asset {
         MATS,
         IDRX,
-        ETH,
-        BNB,
-        AVAX,
-        POL,
-        FTM
+        CUSTOM_1,
+        CUSTOM_2,
+        CUSTOM_3,
+        CUSTOM_4,
+        CUSTOM_5
     }
 
     public static class SwapAssetConfig {
         public final Asset asset;
         public final String symbol;
+        public final String name;
         public final String tokenAddress;
         public final String poolAddress;
         public final int decimals;
 
-        public SwapAssetConfig(Asset asset, String symbol, String tokenAddress, String poolAddress, int decimals) {
+        public SwapAssetConfig(Asset asset, String symbol, String name, String tokenAddress,
+                               String poolAddress, int decimals) {
             this.asset = asset;
             this.symbol = symbol;
+            this.name = name;
             this.tokenAddress = tokenAddress;
             this.poolAddress = poolAddress;
             this.decimals = decimals;
@@ -76,9 +79,7 @@ public class SwapViewModel extends AndroidViewModel {
         super(application);
         walletRepository = ServiceLocator.getWalletRepository(application);
         ethereumService = new EthereumService();
-        if (!hasTokenFor(Asset.MATS) && hasTokenFor(Asset.IDRX)) {
-            selectedAsset = Asset.IDRX;
-        }
+        selectedAsset = getFirstConfiguredAsset();
     }
 
     public LiveData<String> getQuoteState() {
@@ -110,7 +111,7 @@ public class SwapViewModel extends AndroidViewModel {
     }
 
     public boolean hasAsset(Asset asset) {
-        return hasTokenFor(asset);
+        return isSwapReady(asset);
     }
 
     public boolean isSwapReady(Asset asset) {
@@ -127,28 +128,12 @@ public class SwapViewModel extends AndroidViewModel {
 
     public String getAssetDisplayLabel(Asset asset) {
         SwapAssetConfig config = getConfig(asset);
-        String base = config.symbol + " • " + getAssetName(asset);
+        String base = config.symbol + " - " + config.name;
         return isSwapReady(asset) ? base : base + " (Segera hadir)";
     }
 
     public String getAssetName(Asset asset) {
-        switch (asset) {
-            case IDRX:
-                return getApplication().getString(R.string.swap_asset_name_idrx);
-            case ETH:
-                return getApplication().getString(R.string.swap_asset_name_eth);
-            case BNB:
-                return getApplication().getString(R.string.swap_asset_name_bnb);
-            case AVAX:
-                return getApplication().getString(R.string.swap_asset_name_avax);
-            case POL:
-                return getApplication().getString(R.string.swap_asset_name_pol);
-            case FTM:
-                return getApplication().getString(R.string.swap_asset_name_ftm);
-            case MATS:
-            default:
-                return getApplication().getString(R.string.swap_asset_name_mats);
-        }
+        return getConfig(asset).name;
     }
 
     public String getTokenToEthLabel() {
@@ -332,18 +317,6 @@ public class SwapViewModel extends AndroidViewModel {
         return amountOut.multiply(new BigDecimal("0.97"));
     }
 
-    private boolean hasTokenFor(Asset asset) {
-        if (asset == Asset.ETH
-                || asset == Asset.BNB
-                || asset == Asset.AVAX
-                || asset == Asset.POL
-                || asset == Asset.FTM) {
-            return true;
-        }
-        SwapAssetConfig config = getConfig(asset);
-        return config.tokenAddress != null && !config.tokenAddress.isEmpty();
-    }
-
     private boolean hasSwapConfig(SwapAssetConfig config) {
         return config.tokenAddress != null
                 && !config.tokenAddress.isEmpty()
@@ -357,30 +330,92 @@ public class SwapViewModel extends AndroidViewModel {
                 return new SwapAssetConfig(
                         Asset.IDRX,
                         "IDRX",
+                        getApplication().getString(R.string.swap_asset_name_idrx),
                         BuildConfig.IDRX_TOKEN_ADDRESS,
                         BuildConfig.IDRX_SWAP_POOL_ADDRESS,
                         18
                 );
-            case ETH:
-                return new SwapAssetConfig(Asset.ETH, "ETH", "", "", 18);
-            case BNB:
-                return new SwapAssetConfig(Asset.BNB, "BNB", "", "", 18);
-            case AVAX:
-                return new SwapAssetConfig(Asset.AVAX, "AVAX", "", "", 18);
-            case POL:
-                return new SwapAssetConfig(Asset.POL, "POL", "", "", 18);
-            case FTM:
-                return new SwapAssetConfig(Asset.FTM, "FTM", "", "", 18);
+            case CUSTOM_1:
+                return customConfig(
+                        Asset.CUSTOM_1,
+                        BuildConfig.SWAP_TOKEN_1_SYMBOL,
+                        BuildConfig.SWAP_TOKEN_1_NAME,
+                        BuildConfig.SWAP_TOKEN_1_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_1_POOL_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_1_DECIMALS,
+                        "TOKEN1"
+                );
+            case CUSTOM_2:
+                return customConfig(
+                        Asset.CUSTOM_2,
+                        BuildConfig.SWAP_TOKEN_2_SYMBOL,
+                        BuildConfig.SWAP_TOKEN_2_NAME,
+                        BuildConfig.SWAP_TOKEN_2_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_2_POOL_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_2_DECIMALS,
+                        "TOKEN2"
+                );
+            case CUSTOM_3:
+                return customConfig(
+                        Asset.CUSTOM_3,
+                        BuildConfig.SWAP_TOKEN_3_SYMBOL,
+                        BuildConfig.SWAP_TOKEN_3_NAME,
+                        BuildConfig.SWAP_TOKEN_3_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_3_POOL_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_3_DECIMALS,
+                        "TOKEN3"
+                );
+            case CUSTOM_4:
+                return customConfig(
+                        Asset.CUSTOM_4,
+                        BuildConfig.SWAP_TOKEN_4_SYMBOL,
+                        BuildConfig.SWAP_TOKEN_4_NAME,
+                        BuildConfig.SWAP_TOKEN_4_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_4_POOL_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_4_DECIMALS,
+                        "TOKEN4"
+                );
+            case CUSTOM_5:
+                return customConfig(
+                        Asset.CUSTOM_5,
+                        BuildConfig.SWAP_TOKEN_5_SYMBOL,
+                        BuildConfig.SWAP_TOKEN_5_NAME,
+                        BuildConfig.SWAP_TOKEN_5_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_5_POOL_ADDRESS,
+                        BuildConfig.SWAP_TOKEN_5_DECIMALS,
+                        "TOKEN5"
+                );
             case MATS:
             default:
                 return new SwapAssetConfig(
                         Asset.MATS,
                         "MATS",
+                        getApplication().getString(R.string.swap_asset_name_mats),
                         BuildConfig.MATS_TOKEN_ADDRESS,
                         BuildConfig.MATS_SWAP_POOL_ADDRESS,
                         18
                 );
         }
+    }
+
+    private Asset getFirstConfiguredAsset() {
+        for (Asset asset : Asset.values()) {
+            if (hasSwapConfig(getConfig(asset))) {
+                return asset;
+            }
+        }
+        return Asset.MATS;
+    }
+
+    private SwapAssetConfig customConfig(Asset asset, String rawSymbol, String rawName, String tokenAddress,
+                                         String poolAddress, int decimals, String fallbackSymbol) {
+        String symbol = safeString(rawSymbol).isEmpty() ? fallbackSymbol : safeString(rawSymbol).toUpperCase();
+        String name = safeString(rawName).isEmpty() ? symbol + " Token" : safeString(rawName);
+        return new SwapAssetConfig(asset, symbol, name, tokenAddress, poolAddress, Math.max(decimals, 0));
+    }
+
+    private String safeString(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private String shortenHash(String value) {

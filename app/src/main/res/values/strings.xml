@@ -236,7 +236,7 @@
     <string name="swap_to_label">To</string>
     <string name="swap_asset_label">Aset</string>
     <string name="swap_asset_picker_title">Pilih token swap</string>
-    <string name="swap_asset_picker_subtitle">Pilih token yang mau dipakai di sisi from atau to. Token tanpa pool aktif akan ditandai segera hadir.</string>
+    <string name="swap_asset_picker_subtitle">Token yang tampil di sini sudah punya pool aktif, jadi route swap-nya bisa dipakai on-chain.</string>
     <string name="swap_asset_picker_unavailable">Route swap untuk %1$s belum aktif, jadi token ini belum bisa dipilih.</string>
     <string name="swap_asset_name_eth">Ethereum</string>
     <string name="swap_asset_name_bnb">BNB Smart Chain</string>
@@ -276,8 +276,9 @@
     <string name="swap_invalid_amount">Masukkan jumlah swap yang valid.</string>
     <string name="swap_missing_config">Alamat token atau pool swap %1$s belum diisi di local.properties.</string>
     <string name="swap_pool_empty">Pool %1$s belum punya liquidity, jadi swap belum bisa dipakai.</string>
-    <string name="swap_asset_coming_soon">%1$s belum siap untuk swap. Pool-nya masih saya kosongkan dulu.</string>
-    <string name="swap_asset_coming_soon_note">Swap %1$s belum aktif. Begitu pool %1$s sudah dibuat dan diisi liquidity, opsi ini langsung bisa dipakai.</string>
+    <string name="swap_asset_coming_soon">%1$s belum siap untuk swap. Isi token address dan pool address di local.properties dulu.</string>
+    <string name="swap_asset_coming_soon_note">Belum ada pool swap aktif untuk %1$s. Deploy pool, isi liquidity, lalu masukkan address pool ke local.properties.</string>
+    <string name="swap_no_active_pool">Belum ada token swap aktif. Isi MATS/IDRX atau slot SWAP_TOKEN di local.properties.</string>
     <string name="dummy_status_pending">Pending</string>
     <string name="dummy_status_success">Success</string>
     <string name="dummy_status_failed">Failed</string>

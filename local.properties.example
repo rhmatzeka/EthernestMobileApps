@@ -17,6 +17,18 @@ MATS_TOKEN_ADDRESS=your_mats_token_address
 MATS_SWAP_POOL_ADDRESS=your_swap_pool_address
 IDRX_TOKEN_ADDRESS=your_idrx_token_address
 IDRX_SWAP_POOL_ADDRESS=your_idrx_swap_pool_address
+# Optional extra real swap routes. Each slot appears in the swap picker only when
+# ADDRESS and POOL_ADDRESS are both filled.
+SWAP_TOKEN_1_NAME=Example Token
+SWAP_TOKEN_1_SYMBOL=EXT
+SWAP_TOKEN_1_ADDRESS=your_extra_token_address
+SWAP_TOKEN_1_POOL_ADDRESS=your_extra_swap_pool_address
+SWAP_TOKEN_1_DECIMALS=18
+SWAP_TOKEN_2_NAME=
+SWAP_TOKEN_2_SYMBOL=
+SWAP_TOKEN_2_ADDRESS=
+SWAP_TOKEN_2_POOL_ADDRESS=
+SWAP_TOKEN_2_DECIMALS=18
 MIDTRANS_PAYMENT_URL=your_midtrans_snap_redirect_or_payment_link_url
 # Emulator Android: http://10.0.2.2:8787/
 # Device fisik: pakai IP laptop/VPS, contoh http://192.168.1.10:8787/
