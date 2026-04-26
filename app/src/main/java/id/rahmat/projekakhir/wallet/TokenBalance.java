@@ -12,9 +12,16 @@ public class TokenBalance {
     public final BigDecimal unitPriceIdr;
     public final BigDecimal unitPriceUsd;
     public final boolean nativeAsset;
+    public final String unitPriceLabel;
 
     public TokenBalance(String name, String networkName, String symbol, BigDecimal balance, String imageUrl,
                         BigDecimal unitPriceIdr, BigDecimal unitPriceUsd, boolean nativeAsset) {
+        this(name, networkName, symbol, balance, imageUrl, unitPriceIdr, unitPriceUsd, nativeAsset, "");
+    }
+
+    public TokenBalance(String name, String networkName, String symbol, BigDecimal balance, String imageUrl,
+                        BigDecimal unitPriceIdr, BigDecimal unitPriceUsd, boolean nativeAsset,
+                        String unitPriceLabel) {
         this.name = name;
         this.networkName = networkName;
         this.symbol = symbol;
@@ -23,5 +30,6 @@ public class TokenBalance {
         this.unitPriceIdr = unitPriceIdr;
         this.unitPriceUsd = unitPriceUsd;
         this.nativeAsset = nativeAsset;
+        this.unitPriceLabel = unitPriceLabel == null ? "" : unitPriceLabel;
     }
 }

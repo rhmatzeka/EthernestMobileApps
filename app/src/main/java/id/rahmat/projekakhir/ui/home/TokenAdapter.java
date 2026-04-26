@@ -1,6 +1,7 @@
 package id.rahmat.projekakhir.ui.home;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -58,6 +59,12 @@ public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHol
             binding.textTokenName.setText(item.getName());
             binding.textTokenBalance.setText(balancesHidden ? "****" : item.getBalance());
             binding.textTokenFiat.setText(balancesHidden ? "****" : item.getFiatValue());
+            if (balancesHidden || item.getUnitPrice().isEmpty()) {
+                binding.textTokenUnitPrice.setVisibility(View.GONE);
+            } else {
+                binding.textTokenUnitPrice.setVisibility(View.VISIBLE);
+                binding.textTokenUnitPrice.setText(item.getUnitPrice());
+            }
 
             if (item.getImageResId() != 0) {
                 Glide.with(binding.imageToken.getContext()).clear(binding.imageToken);

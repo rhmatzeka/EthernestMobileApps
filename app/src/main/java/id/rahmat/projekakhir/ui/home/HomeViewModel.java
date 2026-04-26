@@ -145,6 +145,7 @@ public class HomeViewModel extends AndroidViewModel {
                     snapshot.getNativeAssetName(),
                     FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
                     FormatUtils.formatIdr(assetIdr),
+                    buildUnitPriceLabel(snapshot.getNativeAssetSymbol(), snapshot.getNativePriceUsd(), snapshot.getNativePriceIdr()),
                     null,
                     resolveTokenIconRes(snapshot.getNativeAssetSymbol()),
                     snapshot.getNativeBalance()
@@ -163,6 +164,7 @@ public class HomeViewModel extends AndroidViewModel {
                     token.name,
                     FormatUtils.formatToken(token.balance, token.symbol),
                     fiatValue,
+                    token.unitPriceLabel,
                     token.imageUrl,
                     resolveTokenIconRes(token.symbol),
                     token.balance
@@ -184,6 +186,15 @@ public class HomeViewModel extends AndroidViewModel {
                 snapshot.getNativeBalance(),
                 idr ? snapshot.getNativePriceIdr() : snapshot.getNativePriceUsd()
         );
+    }
+
+    private String buildUnitPriceLabel(String symbol, BigDecimal unitPriceUsd, BigDecimal unitPriceIdr) {
+        if (unitPriceUsd == null || unitPriceUsd.compareTo(BigDecimal.ZERO) <= 0
+                || unitPriceIdr == null || unitPriceIdr.compareTo(BigDecimal.ZERO) <= 0) {
+            return "";
+        }
+        return "1 " + symbol + " ≈ " + FormatUtils.formatUsd(unitPriceUsd)
+                + " | " + FormatUtils.formatIdr(unitPriceIdr);
     }
 
     private List<NftAsset> safeLoadNfts(String walletAddress) {

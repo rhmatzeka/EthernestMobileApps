@@ -72,6 +72,16 @@
             android:maxLines="2"
             android:textColor="#97A3B6"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/textTokenUnitPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#7C8798"
+            android:textSize="11sp" />
     </LinearLayout>
 
     <LinearLayout

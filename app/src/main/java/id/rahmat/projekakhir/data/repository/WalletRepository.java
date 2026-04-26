@@ -19,6 +19,7 @@ import id.rahmat.projekakhir.wallet.WalletSnapshot;
 
 public class WalletRepository {
 
+    private static final BigDecimal USD_TO_IDR_FALLBACK = new BigDecimal("15500");
     private final WalletManager walletManager;
     private final EthereumService ethereumService;
     private final PriceRepository priceRepository;
@@ -185,31 +186,97 @@ public class WalletRepository {
                     token.decimals,
                     network
             );
-            BigDecimal unitPriceEth = hasAddress(token.poolAddress)
+            PriceRepository.PriceSnapshot unitPrice = getDisplayPrice(token, nativePrice);
+            BigDecimal unitPriceEth = hasAddress(token.poolAddress) && unitPrice.usd.compareTo(BigDecimal.ZERO) <= 0
                     ? ethereumService.quoteTokenToEth(BigDecimal.ONE, token.decimals, token.poolAddress, network)
                     : BigDecimal.ZERO;
+            BigDecimal unitPriceUsd = unitPrice.usd.compareTo(BigDecimal.ZERO) > 0
+                    ? unitPrice.usd
+                    : FormatUtils.safeMultiply(unitPriceEth, nativePrice.usd);
+            BigDecimal unitPriceIdr = unitPrice.idr.compareTo(BigDecimal.ZERO) > 0
+                    ? unitPrice.idr
+                    : FormatUtils.safeMultiply(unitPriceEth, nativePrice.idr);
             return new TokenBalance(
                     token.name,
                     network.getDisplayName(),
                     token.symbol,
                     balance,
                     token.imageUrl,
-                    FormatUtils.safeMultiply(unitPriceEth, nativePrice.idr),
-                    FormatUtils.safeMultiply(unitPriceEth, nativePrice.usd),
-                    false
+                    unitPriceIdr,
+                    unitPriceUsd,
+                    false,
+                    buildUnitPriceLabel(token.symbol, unitPriceUsd, unitPriceIdr)
             );
         } catch (Exception exception) {
+            PriceRepository.PriceSnapshot unitPrice = getDisplayPrice(token, nativePrice);
             return new TokenBalance(
                     token.name,
                     network.getDisplayName(),
                     token.symbol,
                     BigDecimal.ZERO,
                     token.imageUrl,
-                    BigDecimal.ZERO,
-                    BigDecimal.ZERO,
-                    false
+                    unitPrice.idr,
+                    unitPrice.usd,
+                    false,
+                    buildUnitPriceLabel(token.symbol, unitPrice.usd, unitPrice.idr)
             );
         }
+    }
+
+    private PriceRepository.PriceSnapshot getDisplayPrice(TrackedSwapToken token,
+                                                          PriceRepository.PriceSnapshot nativePrice) {
+        String symbol = safeString(token.symbol).toUpperCase();
+        if ("USDT".equals(symbol) || "USDC".equals(symbol) || "DAI".equals(symbol)) {
+            return usdPrice("1");
+        }
+        if ("IDRX".equals(symbol)) {
+            return new PriceRepository.PriceSnapshot(
+                    BigDecimal.ONE.divide(USD_TO_IDR_FALLBACK, 12, java.math.RoundingMode.HALF_UP),
+                    BigDecimal.ONE
+            );
+        }
+        if ("WBTC".equals(symbol)) {
+            return usdPrice("70000");
+        }
+        if ("LINK".equals(symbol)) {
+            return usdPrice("15");
+        }
+        if ("UNI".equals(symbol)) {
+            return usdPrice("8");
+        }
+        if ("AAVE".equals(symbol)) {
+            return usdPrice("100");
+        }
+        if ("ARB".equals(symbol)) {
+            return usdPrice("1");
+        }
+        if ("OP".equals(symbol)) {
+            return usdPrice("2");
+        }
+        if ("SHIB".equals(symbol)) {
+            return usdPrice("0.000025");
+        }
+        if ("PEPE".equals(symbol)) {
+            return usdPrice("0.000012");
+        }
+        if ("MATS".equals(symbol)) {
+            return new PriceRepository.PriceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO);
+        }
+        return new PriceRepository.PriceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    private PriceRepository.PriceSnapshot usdPrice(String usdValue) {
+        BigDecimal usd = new BigDecimal(usdValue);
+        return new PriceRepository.PriceSnapshot(usd, usd.multiply(USD_TO_IDR_FALLBACK));
+    }
+
+    private String buildUnitPriceLabel(String symbol, BigDecimal unitPriceUsd, BigDecimal unitPriceIdr) {
+        if (unitPriceUsd == null || unitPriceUsd.compareTo(BigDecimal.ZERO) <= 0
+                || unitPriceIdr == null || unitPriceIdr.compareTo(BigDecimal.ZERO) <= 0) {
+            return "";
+        }
+        return "1 " + symbol + " ≈ " + FormatUtils.formatUsd(unitPriceUsd)
+                + " | " + FormatUtils.formatIdr(unitPriceIdr);
     }
 
     private List<TrackedSwapToken> getTrackedSwapTokens() {
