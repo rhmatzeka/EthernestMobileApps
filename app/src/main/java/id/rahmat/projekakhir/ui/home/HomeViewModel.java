@@ -90,8 +90,8 @@ public class HomeViewModel extends AndroidViewModel {
                 List<TokenItem> tokenItems = buildAssetList(snapshot, tokenBalances);
                 List<NftItem> nftItems = buildNftList(safeLoadNfts(snapshot.getAddress()));
 
-                BigDecimal totalIdr = FormatUtils.safeMultiply(snapshot.getNativeBalance(), snapshot.getNativePriceIdr());
-                BigDecimal totalUsd = FormatUtils.safeMultiply(snapshot.getNativeBalance(), snapshot.getNativePriceUsd());
+                BigDecimal totalIdr = calculateTotalValue(tokenBalances, snapshot, true);
+                BigDecimal totalUsd = calculateTotalValue(tokenBalances, snapshot, false);
 
                 uiState.postValue(new HomeUiState(
                         snapshot.getAddress(),
@@ -99,9 +99,9 @@ public class HomeViewModel extends AndroidViewModel {
                         snapshot.getNetworkName(),
                         snapshot.getNativeAssetName(),
                         snapshot.getNativeAssetSymbol(),
-                        FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
-                        FormatUtils.formatIdr(totalIdr),
                         FormatUtils.formatUsd(totalUsd),
+                        FormatUtils.formatIdr(totalIdr),
+                        FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
                         getApplication().getString(R.string.native_chart_title, snapshot.getNativeAssetSymbol()),
                         getApplication().getString(R.string.native_chart_subtitle, snapshot.getNativeAssetSymbol()),
                         tokenItems,
@@ -146,7 +146,8 @@ public class HomeViewModel extends AndroidViewModel {
                     FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
                     FormatUtils.formatIdr(assetIdr),
                     null,
-                    resolveTokenIconRes(snapshot.getNativeAssetSymbol())
+                    resolveTokenIconRes(snapshot.getNativeAssetSymbol()),
+                    snapshot.getNativeBalance()
             ));
             return items;
         }
@@ -163,10 +164,26 @@ public class HomeViewModel extends AndroidViewModel {
                     FormatUtils.formatToken(token.balance, token.symbol),
                     fiatValue,
                     token.imageUrl,
-                    resolveTokenIconRes(token.symbol)
+                    resolveTokenIconRes(token.symbol),
+                    token.balance
             ));
         }
         return items;
+    }
+
+    private BigDecimal calculateTotalValue(List<TokenBalance> tokenBalances, WalletSnapshot snapshot, boolean idr) {
+        BigDecimal total = BigDecimal.ZERO;
+        if (tokenBalances != null && !tokenBalances.isEmpty()) {
+            for (TokenBalance token : tokenBalances) {
+                BigDecimal unitPrice = idr ? token.unitPriceIdr : token.unitPriceUsd;
+                total = total.add(FormatUtils.safeMultiply(token.balance, unitPrice));
+            }
+            return total;
+        }
+        return FormatUtils.safeMultiply(
+                snapshot.getNativeBalance(),
+                idr ? snapshot.getNativePriceIdr() : snapshot.getNativePriceUsd()
+        );
     }
 
     private List<NftAsset> safeLoadNfts(String walletAddress) {

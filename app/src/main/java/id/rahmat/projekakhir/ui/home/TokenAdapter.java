@@ -15,9 +15,15 @@ import id.rahmat.projekakhir.databinding.ItemTokenBinding;
 public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHolder> {
 
     private final List<TokenItem> items;
+    private final boolean balancesHidden;
 
     public TokenAdapter(List<TokenItem> items) {
+        this(items, false);
+    }
+
+    public TokenAdapter(List<TokenItem> items, boolean balancesHidden) {
         this.items = items;
+        this.balancesHidden = balancesHidden;
     }
 
     @NonNull
@@ -29,7 +35,7 @@ public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHol
 
     @Override
     public void onBindViewHolder(@NonNull TokenViewHolder holder, int position) {
-        holder.bind(items.get(position));
+        holder.bind(items.get(position), balancesHidden);
     }
 
     @Override
@@ -46,12 +52,12 @@ public class TokenAdapter extends RecyclerView.Adapter<TokenAdapter.TokenViewHol
             this.binding = binding;
         }
 
-        void bind(TokenItem item) {
+        void bind(TokenItem item, boolean balancesHidden) {
             binding.textTokenSymbol.setText(item.getSymbol());
             binding.textTokenBadge.setText(item.getBadge());
             binding.textTokenName.setText(item.getName());
-            binding.textTokenBalance.setText(item.getBalance());
-            binding.textTokenFiat.setText(item.getFiatValue());
+            binding.textTokenBalance.setText(balancesHidden ? "****" : item.getBalance());
+            binding.textTokenFiat.setText(balancesHidden ? "****" : item.getFiatValue());
 
             if (item.getImageResId() != 0) {
                 Glide.with(binding.imageToken.getContext()).clear(binding.imageToken);

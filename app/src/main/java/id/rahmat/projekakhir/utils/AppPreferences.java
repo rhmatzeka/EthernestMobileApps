@@ -17,6 +17,8 @@ public class AppPreferences {
     private static final String KEY_BIOMETRIC_ENABLED = "key_biometric_enabled";
     private static final String KEY_SELECTED_NETWORK = "key_selected_network";
     private static final String KEY_CUSTOM_NETWORKS_JSON = "key_custom_networks_json";
+    private static final String KEY_BALANCE_HIDDEN = "key_balance_hidden";
+    private static final String KEY_ZERO_BALANCE_TOKENS_HIDDEN = "key_zero_balance_tokens_hidden";
 
     private final SharedPreferences sharedPreferences;
 
@@ -54,6 +56,22 @@ public class AppPreferences {
 
     public void setCustomNetworksJson(String json) {
         sharedPreferences.edit().putString(KEY_CUSTOM_NETWORKS_JSON, json).apply();
+    }
+
+    public boolean isBalanceHidden() {
+        return sharedPreferences.getBoolean(KEY_BALANCE_HIDDEN, false);
+    }
+
+    public void setBalanceHidden(boolean hidden) {
+        sharedPreferences.edit().putBoolean(KEY_BALANCE_HIDDEN, hidden).apply();
+    }
+
+    public boolean isZeroBalanceTokensHidden() {
+        return sharedPreferences.getBoolean(KEY_ZERO_BALANCE_TOKENS_HIDDEN, true);
+    }
+
+    public void setZeroBalanceTokensHidden(boolean hidden) {
+        sharedPreferences.edit().putBoolean(KEY_ZERO_BALANCE_TOKENS_HIDDEN, hidden).apply();
     }
 
     public void clearSession() {

@@ -31,6 +31,7 @@ import id.rahmat.projekakhir.ui.base.BaseFragment;
 import id.rahmat.projekakhir.ui.buy.BuyActivity;
 import id.rahmat.projekakhir.ui.receive.ReceiveActivity;
 import id.rahmat.projekakhir.ui.send.SendActivity;
+import id.rahmat.projekakhir.utils.AppPreferences;
 
 public class HomeFragment extends BaseFragment {
 
@@ -41,8 +42,13 @@ public class HomeFragment extends BaseFragment {
     private HomeViewModel viewModel;
     private TokenAdapter tokenAdapter;
     private NftAdapter nftAdapter;
+    private AppPreferences appPreferences;
     private String currentWalletAddress = "";
     private int selectedAssetTab = ASSET_TAB_CRYPTO;
+    private boolean balancesHidden = false;
+    private boolean zeroBalanceTokensHidden = true;
+    private HomeViewModel.HomeUiState currentState;
+    private java.util.List<TokenItem> currentAssets = new java.util.ArrayList<>();
     private java.util.List<NftItem> currentNfts = new java.util.ArrayList<>();
 
     @Nullable
@@ -57,11 +63,15 @@ public class HomeFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        appPreferences = new AppPreferences(requireContext());
+        balancesHidden = appPreferences.isBalanceHidden();
+        zeroBalanceTokensHidden = appPreferences.isZeroBalanceTokensHidden();
         setupChart();
         setupAssetList();
         setupActions();
         setupAssetTabs();
         observeState();
+        renderAssetFilterStatus();
     }
 
     @Override
@@ -86,7 +96,8 @@ public class HomeFragment extends BaseFragment {
         binding.buttonShowQr.setOnClickListener(v -> startActivity(new Intent(requireContext(), ReceiveActivity.class)));
         binding.homeSwipeRefresh.setOnRefreshListener(() -> binding.buttonRefresh.performClick());
         binding.buttonAssetHistory.setOnClickListener(v -> openHistoryTab());
-        binding.buttonAssetFilter.setOnClickListener(v -> showMessage(getString(R.string.asset_filter_message)));
+        binding.buttonToggleBalance.setOnClickListener(v -> toggleBalanceVisibility());
+        binding.buttonAssetFilter.setOnClickListener(v -> toggleTokenFilter());
     }
 
     private void copyWalletAddress() {
@@ -103,7 +114,7 @@ public class HomeFragment extends BaseFragment {
 
     private void setupAssetList() {
         binding.recyclerTokens.setLayoutManager(new LinearLayoutManager(requireContext()));
-        tokenAdapter = new TokenAdapter(new java.util.ArrayList<>());
+        tokenAdapter = new TokenAdapter(new java.util.ArrayList<>(), balancesHidden);
         binding.recyclerTokens.setAdapter(tokenAdapter);
 
         binding.recyclerNfts.setLayoutManager(new LinearLayoutManager(
@@ -162,6 +173,24 @@ public class HomeFragment extends BaseFragment {
         binding.layoutNftEmpty.setVisibility(showNfts && !hasNfts ? View.VISIBLE : View.GONE);
     }
 
+    private void toggleBalanceVisibility() {
+        balancesHidden = !balancesHidden;
+        if (appPreferences != null) {
+            appPreferences.setBalanceHidden(balancesHidden);
+        }
+        renderBalances();
+        renderTokenList();
+    }
+
+    private void toggleTokenFilter() {
+        zeroBalanceTokensHidden = !zeroBalanceTokensHidden;
+        if (appPreferences != null) {
+            appPreferences.setZeroBalanceTokensHidden(zeroBalanceTokensHidden);
+        }
+        renderTokenList();
+        renderAssetFilterStatus();
+    }
+
     private void openHistoryTab() {
         BottomNavigationView bottomNavigation = requireActivity().findViewById(R.id.bottomNavigation);
         if (bottomNavigation != null) {
@@ -204,21 +233,22 @@ public class HomeFragment extends BaseFragment {
     private void observeState() {
         viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
             binding.homeSwipeRefresh.setRefreshing(false);
+            currentState = state;
             currentWalletAddress = state.address;
             binding.textWalletAddress.setText(state.shortAddress);
-            binding.textEthBalance.setText(state.balancePrimary);
-            binding.textFiatBalance.setText(state.balanceIdr + " | " + state.balanceUsd);
+            renderBalances();
             binding.textNetworkBadge.setText(state.networkName);
             binding.textChartTitle.setText(state.chartTitle);
             binding.textChartSubtitle.setText(state.chartSubtitle);
 
-            tokenAdapter = new TokenAdapter(state.assets);
-            binding.recyclerTokens.setAdapter(tokenAdapter);
+            currentAssets = state.assets == null ? new java.util.ArrayList<>() : state.assets;
+            renderTokenList();
 
             nftAdapter = new NftAdapter(state.nfts);
             binding.recyclerNfts.setAdapter(nftAdapter);
             currentNfts = state.nfts == null ? new java.util.ArrayList<>() : state.nfts;
             renderAssetContent();
+            renderAssetFilterStatus();
 
             if (state.chartEntries == null || state.chartEntries.isEmpty()) {
                 binding.chartEthPrice.clear();
@@ -244,6 +274,48 @@ public class HomeFragment extends BaseFragment {
                 showMessage(state.errorMessage);
             }
         });
+    }
+
+    private void renderBalances() {
+        if (binding == null || currentState == null) {
+            return;
+        }
+        binding.buttonToggleBalance.setText(balancesHidden
+                ? getString(R.string.balance_show_action)
+                : getString(R.string.balance_hide_action));
+        if (balancesHidden) {
+            binding.textEthBalance.setText("****");
+            binding.textFiatBalance.setText("****");
+            return;
+        }
+        binding.textEthBalance.setText(currentState.balancePrimary);
+        binding.textFiatBalance.setText(currentState.balanceIdr + " | " + currentState.balanceUsd);
+    }
+
+    private void renderTokenList() {
+        if (binding == null) {
+            return;
+        }
+        java.util.List<TokenItem> visibleAssets = new java.util.ArrayList<>();
+        for (TokenItem item : currentAssets) {
+            if (!zeroBalanceTokensHidden || item.hasPositiveBalance()) {
+                visibleAssets.add(item);
+            }
+        }
+        tokenAdapter = new TokenAdapter(visibleAssets, balancesHidden);
+        binding.recyclerTokens.setAdapter(tokenAdapter);
+    }
+
+    private void renderAssetFilterStatus() {
+        if (binding == null) {
+            return;
+        }
+        binding.textAssetFilterStatus.setText(zeroBalanceTokensHidden
+                ? getString(R.string.asset_filter_positive_only)
+                : getString(R.string.asset_filter_show_all));
+        binding.buttonAssetFilter.setContentDescription(zeroBalanceTokensHidden
+                ? getString(R.string.asset_filter_show_all_action)
+                : getString(R.string.asset_filter_positive_only_action));
     }
 
     @Override

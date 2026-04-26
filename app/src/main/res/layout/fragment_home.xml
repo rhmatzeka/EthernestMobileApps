@@ -56,12 +56,30 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/balance_label"
-                    android:textColor="@color/mw_text_secondary"
-                    android:textSize="13sp" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/balance_label"
+                        android:textColor="@color/mw_text_secondary"
+                        android:textSize="13sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonToggleBalance"
+                        style="@style/Widget.MatsWallet.Button.Secondary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="@string/balance_hide_action"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/textEthBalance"
@@ -339,6 +357,15 @@
                         android:padding="10dp"
                         android:src="@drawable/ic_filter_24" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textAssetFilterStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/asset_filter_positive_only"
+                    android:textColor="@color/mw_text_secondary"
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:id="@+id/assetTabs"

@@ -67,6 +67,8 @@
     <string name="network_bsc_short">BNB</string>
     <string name="network_avalanche_short">AVAX</string>
     <string name="balance_label">Saldo Total</string>
+    <string name="balance_hide_action">Sembunyikan</string>
+    <string name="balance_show_action">Tampilkan</string>
     <string name="sample_eth_balance">1.2487 ETH</string>
     <string name="sample_fiat_balance">~ Rp 64.820.000</string>
     <string name="wallet_address_label">Alamat Wallet</string>
@@ -115,6 +117,10 @@
     <string name="asset_history_action">Riwayat aset</string>
     <string name="asset_filter_action">Filter aset</string>
     <string name="asset_filter_message">Filter aset akan disiapkan setelah daftar aset makin banyak.</string>
+    <string name="asset_filter_positive_only">Menampilkan token yang punya saldo saja. Tap filter untuk tampilkan semua token.</string>
+    <string name="asset_filter_show_all">Menampilkan semua token, termasuk balance 0. Tap filter untuk sembunyikan token kosong.</string>
+    <string name="asset_filter_show_all_action">Tampilkan semua token</string>
+    <string name="asset_filter_positive_only_action">Sembunyikan token kosong</string>
     <string name="token_unit_price">%1$s • 1 %2$s ≈ %3$s</string>
     <string name="token_value_unavailable">Harga belum tersedia</string>
     <string name="nft_section_title">NFT Collection</string>
