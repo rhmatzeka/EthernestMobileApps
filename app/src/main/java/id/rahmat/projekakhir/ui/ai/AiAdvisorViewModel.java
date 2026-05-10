@@ -16,6 +16,7 @@ import java.util.Locale;
 
 import id.rahmat.projekakhir.R;
 import id.rahmat.projekakhir.data.repository.NewsRepository;
+import id.rahmat.projekakhir.data.repository.OpenAiRepository;
 import id.rahmat.projekakhir.data.repository.PriceRepository;
 import id.rahmat.projekakhir.di.ServiceLocator;
 import id.rahmat.projekakhir.utils.AppExecutors;
@@ -67,6 +68,7 @@ public class AiAdvisorViewModel extends AndroidViewModel {
     }
 
     private final NewsRepository newsRepository;
+    private final OpenAiRepository openAiRepository;
     private final PriceRepository priceRepository;
     private final MutableLiveData<AiUiState> uiState = new MutableLiveData<>();
     private final MutableLiveData<String> answerState = new MutableLiveData<>();
@@ -75,6 +77,7 @@ public class AiAdvisorViewModel extends AndroidViewModel {
     public AiAdvisorViewModel(@NonNull Application application) {
         super(application);
         newsRepository = ServiceLocator.getNewsRepository(application);
+        openAiRepository = ServiceLocator.getOpenAiRepository(application);
         priceRepository = ServiceLocator.getPriceRepository(application);
     }
 
@@ -87,14 +90,15 @@ public class AiAdvisorViewModel extends AndroidViewModel {
     }
 
     public void load() {
+        latestState = buildInstantFallbackState();
         uiState.postValue(new AiUiState(
                 true,
                 getApplication().getString(R.string.ai_loading),
                 getApplication().getString(R.string.ai_loading),
                 getApplication().getString(R.string.ai_loading),
-                "",
-                new ArrayList<>(),
-                new ArrayList<>(),
+                latestState.bestAsset,
+                latestState.stableAssets,
+                latestState.newsItems,
                 ""
         ));
 
@@ -135,7 +139,20 @@ public class AiAdvisorViewModel extends AndroidViewModel {
             answerState.postValue(getApplication().getString(R.string.ai_answer_wait));
             return;
         }
-        answerState.postValue(generateAnswer(cleanQuestion, state));
+        answerState.postValue(getApplication().getString(R.string.ai_answer_thinking));
+        AppExecutors.io().execute(() -> {
+            String onlineAnswer = "";
+            try {
+                onlineAnswer = openAiRepository.ask(cleanQuestion, buildAiContext(state));
+            } catch (Exception ignored) {
+                onlineAnswer = "";
+            }
+            if (onlineAnswer != null && !onlineAnswer.trim().isEmpty()) {
+                answerState.postValue(onlineAnswer.trim());
+                return;
+            }
+            answerState.postValue(generateAnswer(cleanQuestion, state));
+        });
     }
 
     private List<StableAssetSignal> buildStableSignals() {
@@ -145,6 +162,37 @@ public class AiAdvisorViewModel extends AndroidViewModel {
         signals.add(loadStableSignal("DAI", "Dai", "dai"));
         signals.sort((left, right) -> left.deviationPercent.compareTo(right.deviationPercent));
         return signals;
+    }
+
+    private AiUiState buildInstantFallbackState() {
+        List<StableAssetSignal> signals = new ArrayList<>();
+        signals.add(new StableAssetSignal("USDC", "USD Coin", "usd-coin", ONE_USD, BigDecimal.ZERO));
+        signals.add(new StableAssetSignal("USDT", "Tether USD", "tether", ONE_USD, BigDecimal.ZERO));
+        signals.add(new StableAssetSignal("DAI", "Dai", "dai", ONE_USD, BigDecimal.ZERO));
+        List<NewsRepository.NewsItem> fallbackNews = new ArrayList<>();
+        fallbackNews.add(new NewsRepository.NewsItem(
+                "Mode defensif dipakai saat berita konflik, inflasi, atau regulasi meningkat",
+                "Ethernest AI",
+                "",
+                "Offline",
+                "Stablecoin USD biasanya lebih rendah volatilitas daripada aset crypto besar, tetapi tetap punya risiko depeg dan issuer."
+        ));
+        return new AiUiState(
+                false,
+                getApplication().getString(R.string.ai_risk_medium),
+                getApplication().getString(R.string.ai_recommendation_title, "USDC"),
+                getApplication().getString(
+                        R.string.ai_recommendation_body,
+                        "USDC",
+                        "0.000%",
+                        getApplication().getString(R.string.ai_reason_medium),
+                        getApplication().getString(R.string.ai_news_empty_context)
+                ),
+                "USDC",
+                signals,
+                fallbackNews,
+                ""
+        );
     }
 
     private StableAssetSignal loadStableSignal(String symbol, String name, String assetId) {
@@ -198,61 +246,145 @@ public class AiAdvisorViewModel extends AndroidViewModel {
 
     private String generateAnswer(String question, AiUiState state) {
         String lowerQuestion = question.toLowerCase(Locale.US);
-        if (containsAny(lowerQuestion, "stabil", "aman", "pindah", "hold", "risiko", "perang", "konflik", "krisis")) {
-            return getApplication().getString(
-                    R.string.ai_answer_stability,
-                    state.bestAsset,
-                    state.riskLabel,
-                    state.recommendationBody
-            );
-        }
-        if (containsAny(lowerQuestion, "ringkas", "summary", "berita", "news", "jelaskan")) {
-            return summarizeNews(state);
+        if (containsAny(lowerQuestion, "halo", "hallo", "hello", "hai", "hi", "pagi", "siang", "malam")) {
+            return "Halo. Saya AI Ethernest. Kamu bisa tanya soal berita crypto, risiko market, stablecoin, swap, wallet, atau minta rekomendasi defensif saat kondisi tidak stabil.";
         }
         if (containsAny(lowerQuestion, "usdc", "usdt", "dai", "stablecoin", "depeg")) {
-            return explainStablecoins(state);
+            return buildStablecoinAnswer(state, findRelevantNews(lowerQuestion, state.newsItems));
+        }
+        if (containsAny(lowerQuestion, "perang", "konflik", "krisis", "war", "conflict", "crisis", "attack")) {
+            return buildCrisisAnswer(state, findRelevantNews(lowerQuestion, state.newsItems));
+        }
+        if (containsAny(lowerQuestion, "ringkas", "summary", "berita", "news", "jelaskan")) {
+            return buildNewsSummaryAnswer(state, findRelevantNews(lowerQuestion, state.newsItems));
+        }
+        if (containsAny(lowerQuestion, "btc", "bitcoin", "eth", "ethereum", "altcoin", "crypto turun", "market turun")) {
+            return buildVolatileAssetAnswer(state, findRelevantNews(lowerQuestion, state.newsItems));
+        }
+        if (containsAny(lowerQuestion, "stabil", "aman", "pindah", "hold", "risiko", "rekomendasi", "aset")) {
+            return buildStabilityAnswer(state, findRelevantNews(lowerQuestion, state.newsItems));
         }
         List<NewsRepository.NewsItem> matches = findMatchingNews(lowerQuestion, state.newsItems);
         if (!matches.isEmpty()) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(getApplication().getString(R.string.ai_answer_news_intro)).append("\n\n");
-            for (int i = 0; i < Math.min(2, matches.size()); i++) {
-                NewsRepository.NewsItem item = matches.get(i);
-                builder.append(i + 1)
-                        .append(". ")
-                        .append(item.title);
-                if (!item.source.isEmpty()) {
-                    builder.append(" (").append(item.source).append(")");
-                }
-                builder.append("\n");
-            }
-            builder.append("\n").append(getApplication().getString(R.string.ai_answer_news_footer));
-            return builder.toString();
+            return buildNewsQuestionAnswer(state, matches);
         }
-        return getApplication().getString(
-                R.string.ai_answer_general,
-                state.bestAsset,
-                state.riskLabel
-        );
+        return buildStabilityAnswer(state, findRelevantNews(lowerQuestion, state.newsItems));
     }
 
-    private String summarizeNews(AiUiState state) {
-        if (state.newsItems.isEmpty()) {
-            return getApplication().getString(R.string.ai_answer_no_news, state.bestAsset, state.riskLabel);
-        }
+    private String buildAiContext(AiUiState state) {
         StringBuilder builder = new StringBuilder();
-        builder.append(getApplication().getString(R.string.ai_answer_summary_intro, state.riskLabel)).append("\n\n");
-        for (int i = 0; i < Math.min(3, state.newsItems.size()); i++) {
-            NewsRepository.NewsItem item = state.newsItems.get(i);
-            builder.append(i + 1).append(". ").append(item.title).append("\n");
+        builder.append("Status risiko: ").append(state.riskLabel).append("\n");
+        builder.append("Aset stabil pilihan aplikasi: ").append(state.bestAsset).append("\n");
+        builder.append("Rekomendasi awal: ").append(state.recommendationBody).append("\n\n");
+        builder.append("Sinyal stablecoin:\n");
+        for (StableAssetSignal signal : state.stableAssets) {
+            builder.append("- ")
+                    .append(signal.symbol)
+                    .append(" (")
+                    .append(signal.name)
+                    .append("): price USD ")
+                    .append(signal.priceUsd.setScale(4, RoundingMode.HALF_UP).toPlainString())
+                    .append(", deviasi ")
+                    .append(signal.deviationPercent.toPlainString())
+                    .append("%\n");
         }
-        builder.append("\n").append(getApplication().getString(R.string.ai_answer_summary_footer, state.bestAsset));
+        builder.append("\nBerita/konteks yang sedang tampil:\n");
+        for (int i = 0; i < Math.min(6, state.newsItems.size()); i++) {
+            NewsRepository.NewsItem item = state.newsItems.get(i);
+            builder.append(i + 1)
+                    .append(". ")
+                    .append(item.title);
+            if (!item.source.isEmpty()) {
+                builder.append(" - ").append(item.source);
+            }
+            if (!item.summary.isEmpty()) {
+                builder.append("\n   ").append(item.summary);
+            }
+            builder.append("\n");
+        }
         return builder.toString();
     }
 
-    private String explainStablecoins(AiUiState state) {
+    private String buildCrisisAnswer(AiUiState state, List<NewsRepository.NewsItem> newsItems) {
         StringBuilder builder = new StringBuilder();
-        builder.append(getApplication().getString(R.string.ai_answer_stablecoin_intro)).append("\n\n");
+        builder.append("Jawaban singkat:\n");
+        builder.append("Kalau ada perang/konflik besar, mode paling defensif adalah mengurangi aset volatil dan parkir sementara di ")
+                .append(state.bestAsset)
+                .append(" atau stablecoin USD lain.\n\n");
+        builder.append("Kenapa:\n");
+        builder.append("- BTC, ETH, dan altcoin bisa bergerak tajam saat pasar panik.\n");
+        builder.append("- Stablecoin USD biasanya lebih stabil karena targetnya mengikuti $1.\n");
+        builder.append("- Tetap cek risiko depeg, issuer, regulasi, dan likuiditas.\n\n");
+        appendStablecoinSignals(builder, state);
+        appendNewsContext(builder, newsItems);
+        builder.append("\nLangkah defensif:\n");
+        builder.append("1. Jangan pindahkan 100% aset sekaligus.\n");
+        builder.append("2. Pecah risiko antara USDC/USDT/DAI kalau nominal besar.\n");
+        builder.append("3. Masuk lagi ke aset volatil hanya setelah berita dan market lebih tenang.");
+        return builder.toString();
+    }
+
+    private String buildStabilityAnswer(AiUiState state, List<NewsRepository.NewsItem> newsItems) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Jawaban singkat:\n");
+        builder.append("AI memilih ").append(state.bestAsset).append(" sebagai kandidat paling stabil saat ini.\n\n");
+        builder.append("Alasannya:\n");
+        builder.append(state.recommendationBody).append("\n\n");
+        appendStablecoinSignals(builder, state);
+        appendNewsContext(builder, newsItems);
+        builder.append("\nCatatan:\nIni bukan jaminan aman 100%. Stablecoin tetap bisa depeg atau terkena masalah issuer/regulasi.");
+        return builder.toString();
+    }
+
+    private String buildStablecoinAnswer(AiUiState state, List<NewsRepository.NewsItem> newsItems) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Penjelasan stablecoin:\n");
+        builder.append("USDC, USDT, dan DAI dibuat agar nilainya dekat $1, jadi biasanya lebih stabil daripada ETH/BTC saat market bergejolak.\n\n");
+        appendStablecoinSignals(builder, state);
+        builder.append("\nRisiko yang harus dipahami:\n");
+        builder.append("- Depeg: harga bisa turun dari $1.\n");
+        builder.append("- Issuer/cadangan: terutama untuk stablecoin terpusat.\n");
+        builder.append("- Smart contract: terutama untuk token on-chain.\n");
+        builder.append("- Regulasi dan likuiditas: bisa memengaruhi akses jual/beli.\n");
+        appendNewsContext(builder, newsItems);
+        return builder.toString();
+    }
+
+    private String buildNewsSummaryAnswer(AiUiState state, List<NewsRepository.NewsItem> newsItems) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Ringkasan AI:\n");
+        builder.append("Status risiko: ").append(state.riskLabel).append(".\n\n");
+        appendNewsContext(builder, newsItems);
+        builder.append("\nKesimpulan awam:\n");
+        builder.append("Kalau berita banyak membahas konflik, inflasi, regulasi, atau market crash, aset defensif seperti ")
+                .append(state.bestAsset)
+                .append(" lebih masuk akal untuk sementara daripada aset crypto yang volatil.");
+        return builder.toString();
+    }
+
+    private String buildVolatileAssetAnswer(AiUiState state, List<NewsRepository.NewsItem> newsItems) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Tentang aset volatil:\n");
+        builder.append("BTC/ETH bisa tetap kuat jangka panjang, tapi saat berita risiko membesar harganya dapat turun cepat karena investor mengurangi risiko.\n\n");
+        builder.append("Untuk mode stabil, AI lebih memilih ").append(state.bestAsset).append(".\n\n");
+        appendStablecoinSignals(builder, state);
+        appendNewsContext(builder, newsItems);
+        return builder.toString();
+    }
+
+    private String buildNewsQuestionAnswer(AiUiState state, List<NewsRepository.NewsItem> newsItems) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Berita yang paling nyambung:\n\n");
+        appendNewsList(builder, newsItems);
+        builder.append("\nMaknanya untuk wallet:\n");
+        builder.append("Kalau berita ini meningkatkan ketidakpastian, jangan tambah posisi agresif dulu. Untuk menjaga nilai, kandidat defensif saat ini: ")
+                .append(state.bestAsset)
+                .append(".");
+        return builder.toString();
+    }
+
+    private void appendStablecoinSignals(StringBuilder builder, AiUiState state) {
+        builder.append("Sinyal stablecoin:\n");
         for (StableAssetSignal signal : state.stableAssets) {
             builder.append("- ")
                     .append(signal.symbol)
@@ -262,8 +394,42 @@ public class AiAdvisorViewModel extends AndroidViewModel {
                     .append(signal.deviationPercent.toPlainString())
                     .append("%\n");
         }
-        builder.append("\n").append(getApplication().getString(R.string.ai_answer_stablecoin_footer, state.bestAsset));
-        return builder.toString();
+    }
+
+    private void appendNewsContext(StringBuilder builder, List<NewsRepository.NewsItem> newsItems) {
+        if (newsItems == null || newsItems.isEmpty()) {
+            builder.append("\nBerita terkait:\nBelum ada berita yang cocok. AI memakai sinyal harga stablecoin dan risk brief lokal.\n");
+            return;
+        }
+        builder.append("\nBerita terkait:\n");
+        appendNewsList(builder, newsItems);
+    }
+
+    private void appendNewsList(StringBuilder builder, List<NewsRepository.NewsItem> newsItems) {
+        for (int i = 0; i < Math.min(3, newsItems.size()); i++) {
+            NewsRepository.NewsItem item = newsItems.get(i);
+            builder.append(i + 1).append(". ").append(item.title);
+            if (!item.source.isEmpty()) {
+                builder.append(" (").append(item.source).append(")");
+            }
+            if (!item.summary.isEmpty() && !"Fallback".equalsIgnoreCase(item.publishedAt)) {
+                builder.append("\n   ").append(item.summary);
+            }
+            builder.append("\n");
+        }
+    }
+
+    private List<NewsRepository.NewsItem> findRelevantNews(String lowerQuestion,
+                                                           List<NewsRepository.NewsItem> newsItems) {
+        List<NewsRepository.NewsItem> matches = findMatchingNews(lowerQuestion, newsItems);
+        if (!matches.isEmpty()) {
+            return matches;
+        }
+        List<NewsRepository.NewsItem> fallback = new ArrayList<>();
+        for (int i = 0; i < Math.min(3, newsItems.size()); i++) {
+            fallback.add(newsItems.get(i));
+        }
+        return fallback;
     }
 
     private List<NewsRepository.NewsItem> findMatchingNews(String lowerQuestion,

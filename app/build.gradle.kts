@@ -63,6 +63,8 @@ android {
         buildConfigField("String", "BASE_RPC_URL", "\"${localProperty("BASE_RPC_URL")}\"")
         buildConfigField("String", "FANTOM_RPC_URL", "\"${localProperty("FANTOM_RPC_URL")}\"")
         buildConfigField("String", "ETHERSCAN_API_KEY", "\"${localProperty("ETHERSCAN_API_KEY")}\"")
+        buildConfigField("String", "OPENAI_API_KEY", "\"${localProperty("OPENAI_API_KEY")}\"")
+        buildConfigField("String", "OPENAI_MODEL", "\"${localProperty("OPENAI_MODEL", "gpt-4.1-mini")}\"")
         buildConfigField("String", "MATS_TOKEN_ADDRESS", "\"${localProperty("MATS_TOKEN_ADDRESS")}\"")
         buildConfigField("String", "MATS_SWAP_POOL_ADDRESS", "\"${localProperty("MATS_SWAP_POOL_ADDRESS")}\"")
         buildConfigField("String", "IDRX_TOKEN_ADDRESS", "\"${localProperty("IDRX_TOKEN_ADDRESS")}\"")

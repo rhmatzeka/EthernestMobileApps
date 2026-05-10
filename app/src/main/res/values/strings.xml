@@ -114,6 +114,7 @@
     <string name="ai_quick_stablecoin_question">Jelaskan risiko USDC, USDT, DAI, dan depeg stablecoin.</string>
     <string name="ai_question_empty">Tulis pertanyaan dulu.</string>
     <string name="ai_answer_wait">Tunggu analisis berita selesai dulu.</string>
+    <string name="ai_answer_thinking">AI sedang menjawab...</string>
     <string name="ai_answer_stability">Menurut sinyal saat ini, opsi paling stabil adalah %1$s. Status risiko: %2$s.\n\n%3$s</string>
     <string name="ai_answer_news_intro">Berita yang paling nyambung dengan pertanyaan kamu:</string>
     <string name="ai_answer_news_footer">Intinya, baca dampaknya ke likuiditas, dolar AS, regulasi, dan volatilitas crypto sebelum memindahkan aset.</string>

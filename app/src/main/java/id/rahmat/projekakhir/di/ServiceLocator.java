@@ -7,7 +7,9 @@ import id.rahmat.projekakhir.data.local.AppDatabase;
 import id.rahmat.projekakhir.data.remote.CoinGeckoApi;
 import id.rahmat.projekakhir.data.remote.EtherscanApi;
 import id.rahmat.projekakhir.data.remote.GdeltApi;
+import id.rahmat.projekakhir.data.remote.OpenAiApi;
 import id.rahmat.projekakhir.data.repository.NewsRepository;
+import id.rahmat.projekakhir.data.repository.OpenAiRepository;
 import id.rahmat.projekakhir.data.repository.PriceRepository;
 import id.rahmat.projekakhir.data.repository.NftRepository;
 import id.rahmat.projekakhir.data.repository.TransactionRepository;
@@ -29,6 +31,7 @@ public final class ServiceLocator {
     private static PriceRepository priceRepository;
     private static NftRepository nftRepository;
     private static NewsRepository newsRepository;
+    private static OpenAiRepository openAiRepository;
 
     private ServiceLocator() {
     }
@@ -90,14 +93,27 @@ public final class ServiceLocator {
         return newsRepository;
     }
 
+    public static OpenAiRepository getOpenAiRepository(Context context) {
+        if (openAiRepository == null) {
+            openAiRepository = new OpenAiRepository(
+                    createRetrofit("https://api.openai.com/", 30).create(OpenAiApi.class)
+            );
+        }
+        return openAiRepository;
+    }
+
     private static Retrofit createRetrofit(String baseUrl) {
+        return createRetrofit(baseUrl, 8);
+    }
+
+    private static Retrofit createRetrofit(String baseUrl, int readTimeoutSeconds) {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(6, TimeUnit.SECONDS)
-                .readTimeout(8, TimeUnit.SECONDS)
-                .writeTimeout(8, TimeUnit.SECONDS)
+                .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
+                .writeTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
                 .addInterceptor(loggingInterceptor)
                 .build();
 
