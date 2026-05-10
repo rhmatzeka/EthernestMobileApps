@@ -79,6 +79,13 @@
     <string name="send_action">Kirim</string>
     <string name="receive_action">Terima</string>
     <string name="buy_action">Beli</string>
+    <string name="market_label">Market</string>
+    <string name="market_screen_title">Market</string>
+    <string name="market_screen_subtitle">Pantau harga aset jaringan aktif.</string>
+    <string name="market_search_hint">Cari chart aset</string>
+    <string name="market_search_empty">Chart tidak ditemukan.</string>
+    <string name="market_price_label">Harga Saat Ini</string>
+    <string name="market_chart_empty">Chart market belum tersedia.</string>
     <string name="buy_screen_title">Beli</string>
     <string name="buy_currency_idr">IDR</string>
     <string name="buy_asset_eth">ETH</string>
@@ -110,6 +117,7 @@
     <string name="native_chart_title">Pergerakan %1$s 7 Hari</string>
     <string name="native_chart_subtitle">Candlestick 7 hari dari CoinGecko untuk membaca momentum harga %1$s lebih cepat.</string>
     <string name="native_chart_loading">Memuat chart aset...</string>
+    <string name="native_chart_unavailable">Chart aset ini belum tersedia.</string>
     <string name="token_section_title">Token yang Dimiliki</string>
     <string name="asset_section_title">Aset Dimiliki</string>
     <string name="asset_tab_crypto">Crypto</string>
@@ -237,7 +245,7 @@
     <string name="logout_action">Logout</string>
     <string name="swap_screen_title">Swap Token</string>
     <string name="swap_screen_subtitle">Pilih token EVM lalu tukar dengan ETH lewat pool yang sudah aktif.</string>
-    <string name="swap_slippage_badge">3%%</string>
+    <string name="swap_slippage_badge">3%</string>
     <string name="swap_from_label">From</string>
     <string name="swap_to_label">To</string>
     <string name="swap_asset_label">Aset</string>

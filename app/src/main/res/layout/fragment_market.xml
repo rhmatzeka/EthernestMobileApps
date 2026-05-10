@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="150dp"
+    tools:context=".ui.market.MarketFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textMarketNetwork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_section_pill"
+            android:drawableStart="@drawable/ic_chart_nav_24"
+            android:drawablePadding="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
+            android:paddingVertical="8dp"
+            android:text="@string/network_sepolia"
+            android:textColor="@color/mw_text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/market_screen_title"
+            android:textColor="@color/mw_text_primary"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/market_screen_subtitle"
+            android:textColor="@color/mw_text_secondary"
+            android:textSize="13sp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/inputMarketSearchLayout"
+            style="@style/Widget.MatsWallet.TextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:hint="@string/market_search_hint"
+            app:endIconMode="clear_text"
+            app:startIconDrawable="@drawable/ic_chart_nav_24"
+            app:startIconTint="@color/mw_text_secondary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputMarketSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/mw_text_primary"
+                android:textColorHint="@color/mw_text_secondary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/textMarketSearchEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/market_search_empty"
+            android:textColor="@color/mw_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <HorizontalScrollView
+            android:id="@+id/marketSelectorScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/layoutMarketSelector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_glass_card"
+            android:orientation="vertical"
+            android:padding="22dp">
+
+            <TextView
+                android:id="@+id/textMarketPriceLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/market_price_label"
+                android:textColor="@color/mw_text_secondary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textMarketPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/fiat_unavailable"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="34sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textMarketPriceUsd"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/fiat_unavailable"
+                android:textColor="@color/mw_text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/textMarketChartTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/native_chart_loading"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <com.github.mikephil.charting.charts.CandleStickChart
+                android:id="@+id/chartMarketPrice"
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:layout_marginTop="14dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

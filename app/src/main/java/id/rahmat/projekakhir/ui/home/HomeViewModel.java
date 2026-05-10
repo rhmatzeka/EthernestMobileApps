@@ -24,8 +24,54 @@ import id.rahmat.projekakhir.utils.FormatUtils;
 import id.rahmat.projekakhir.wallet.NftAsset;
 import id.rahmat.projekakhir.wallet.TokenBalance;
 import id.rahmat.projekakhir.wallet.WalletSnapshot;
+import id.rahmat.projekakhir.wallet.EthereumNetwork;
 
 public class HomeViewModel extends AndroidViewModel {
+
+    public static class ChartItem {
+        public final String assetId;
+        public final String symbol;
+        public final String title;
+        public final String subtitle;
+        public final List<CandleEntry> entries;
+
+        public ChartItem(String assetId, String symbol, String title, String subtitle, List<CandleEntry> entries) {
+            this.assetId = assetId;
+            this.symbol = symbol;
+            this.title = title;
+            this.subtitle = subtitle;
+            this.entries = entries;
+        }
+    }
+
+    private static class ChartConfig {
+        final String symbol;
+        final String assetId;
+
+        ChartConfig(String symbol, String assetId) {
+            this.symbol = symbol;
+            this.assetId = assetId;
+        }
+    }
+
+    private static final ChartConfig[] DEFAULT_CHARTS = new ChartConfig[]{
+            new ChartConfig("ETH", "ethereum"),
+            new ChartConfig("BNB", "binancecoin"),
+            new ChartConfig("AVAX", "avalanche-2"),
+            new ChartConfig("POL", "polygon-ecosystem-token"),
+            new ChartConfig("FTM", "fantom"),
+            new ChartConfig("USDT", "tether"),
+            new ChartConfig("USDC", "usd-coin"),
+            new ChartConfig("DAI", "dai"),
+            new ChartConfig("WBTC", "wrapped-bitcoin"),
+            new ChartConfig("LINK", "chainlink"),
+            new ChartConfig("UNI", "uniswap"),
+            new ChartConfig("AAVE", "aave"),
+            new ChartConfig("SHIB", "shiba-inu"),
+            new ChartConfig("PEPE", "pepe"),
+            new ChartConfig("ARB", "arbitrum"),
+            new ChartConfig("OP", "optimism")
+    };
 
     public static class HomeUiState {
         public final String address;
@@ -41,13 +87,14 @@ public class HomeViewModel extends AndroidViewModel {
         public final List<TokenItem> assets;
         public final List<NftItem> nfts;
         public final List<CandleEntry> chartEntries;
+        public final List<ChartItem> chartItems;
         public final String errorMessage;
 
         public HomeUiState(String address, String shortAddress, String networkName,
                            String nativeAssetName, String nativeAssetSymbol, String balancePrimary,
                            String balanceIdr, String balanceUsd, String chartTitle, String chartSubtitle,
                            List<TokenItem> assets, List<NftItem> nfts,
-                           List<CandleEntry> chartEntries, String errorMessage) {
+                           List<CandleEntry> chartEntries, List<ChartItem> chartItems, String errorMessage) {
             this.address = address;
             this.shortAddress = shortAddress;
             this.networkName = networkName;
@@ -61,6 +108,7 @@ public class HomeViewModel extends AndroidViewModel {
             this.assets = assets;
             this.nfts = nfts;
             this.chartEntries = chartEntries;
+            this.chartItems = chartItems;
             this.errorMessage = errorMessage;
         }
     }
@@ -69,6 +117,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final PriceRepository priceRepository;
     private final NftRepository nftRepository;
     private final MutableLiveData<HomeUiState> uiState = new MutableLiveData<>();
+    private final MutableLiveData<ChartItem> chartState = new MutableLiveData<>();
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -81,11 +130,15 @@ public class HomeViewModel extends AndroidViewModel {
         return uiState;
     }
 
+    public LiveData<ChartItem> getChartState() {
+        return chartState;
+    }
+
     public void refresh() {
         AppExecutors.io().execute(() -> {
             try {
                 WalletSnapshot snapshot = walletRepository.loadWalletSnapshot();
-                List<CandleEntry> chartEntries = priceRepository.getSevenDayCandleEntries(walletRepository.getSelectedNetwork());
+                List<ChartItem> chartItems = buildChartItems();
                 List<TokenBalance> tokenBalances = walletRepository.loadTokenBalances();
                 List<TokenItem> tokenItems = buildAssetList(snapshot, tokenBalances);
                 List<NftItem> nftItems = buildNftList(safeLoadNfts(snapshot.getAddress()));
@@ -106,7 +159,8 @@ public class HomeViewModel extends AndroidViewModel {
                         getApplication().getString(R.string.native_chart_subtitle, snapshot.getNativeAssetSymbol()),
                         tokenItems,
                         nftItems,
-                        chartEntries,
+                        new ArrayList<>(),
+                        chartItems,
                         null
                 ));
             } catch (Exception exception) {
@@ -125,10 +179,73 @@ public class HomeViewModel extends AndroidViewModel {
                         Collections.emptyList(),
                         Collections.emptyList(),
                         new ArrayList<>(),
+                        Collections.emptyList(),
                         exception.getMessage()
                 ));
             }
         });
+    }
+
+    public void loadChart(ChartItem chartItem) {
+        if (chartItem == null || chartItem.assetId == null || chartItem.assetId.trim().isEmpty()) {
+            return;
+        }
+        AppExecutors.io().execute(() -> {
+            try {
+                List<CandleEntry> entries = priceRepository.getSevenDayCandleEntries(chartItem.assetId);
+                chartState.postValue(new ChartItem(
+                        chartItem.assetId,
+                        chartItem.symbol,
+                        chartItem.title,
+                        chartItem.subtitle,
+                        entries
+                ));
+            } catch (Exception ignored) {
+                chartState.postValue(new ChartItem(
+                        chartItem.assetId,
+                        chartItem.symbol,
+                        chartItem.title,
+                        chartItem.subtitle,
+                        new ArrayList<>()
+                ));
+            }
+        });
+    }
+
+    private List<ChartItem> buildChartItems() {
+        List<ChartItem> items = new ArrayList<>();
+        List<String> addedAssetIds = new ArrayList<>();
+        EthereumNetwork selectedNetwork = walletRepository.getSelectedNetwork();
+        addChartItem(items, addedAssetIds, selectedNetwork);
+        for (EthereumNetwork network : walletRepository.getAvailableNetworks()) {
+            addChartItem(items, addedAssetIds, network);
+        }
+        for (ChartConfig config : DEFAULT_CHARTS) {
+            addChartItem(items, addedAssetIds, config.symbol, config.assetId);
+        }
+        return items;
+    }
+
+    private void addChartItem(List<ChartItem> items, List<String> addedAssetIds, EthereumNetwork network) {
+        String assetId = network.getCoinGeckoAssetId();
+        if (assetId == null || assetId.trim().isEmpty() || addedAssetIds.contains(assetId)) {
+            return;
+        }
+        addChartItem(items, addedAssetIds, network.getNativeSymbol(), assetId);
+    }
+
+    private void addChartItem(List<ChartItem> items, List<String> addedAssetIds, String symbol, String assetId) {
+        if (assetId == null || assetId.trim().isEmpty() || addedAssetIds.contains(assetId)) {
+            return;
+        }
+        items.add(new ChartItem(
+                assetId,
+                symbol,
+                getApplication().getString(R.string.native_chart_title, symbol),
+                getApplication().getString(R.string.native_chart_subtitle, symbol),
+                new ArrayList<>()
+        ));
+        addedAssetIds.add(assetId);
     }
 
     private List<TokenItem> buildAssetList(WalletSnapshot snapshot, List<TokenBalance> tokenBalances) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/homeSwipeRefresh"
     android:layout_width="match_parent"
@@ -10,51 +11,74 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="20dp"
-        android:paddingBottom="140dp">
+        android:paddingBottom="160dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
+            <!-- Top bar -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/home_greeting"
-                android:textColor="@color/mw_text_primary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="20dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/home_overview"
-                android:textColor="@color/mw_text_secondary"
-                android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/textNetworkBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_section_pill"
+                    android:drawableStart="@drawable/ic_token_eth_real"
+                    android:drawablePadding="8dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="14dp"
+                    android:paddingVertical="8dp"
+                    android:text="@string/network_sepolia"
+                    android:textColor="@color/mw_text_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textNetworkBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_card_surface"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="@string/network_sepolia"
-                android:textColor="@color/mw_highlight"
-                android:textStyle="bold" />
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
 
+                <ImageButton
+                    android:id="@+id/buttonRefresh"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_circle_icon_btn"
+                    android:contentDescription="@string/refresh_action"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_refresh_24"
+                    android:tint="@color/mw_text_primary" />
+
+                <ImageButton
+                    android:id="@+id/buttonAssetHistory"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_circle_icon_btn"
+                    android:contentDescription="@string/asset_history_action"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_history_24"
+                    android:tint="@color/mw_text_primary" />
+            </LinearLayout>
+
+            <!-- Balance card -->
             <LinearLayout
                 android:id="@+id/balanceCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/bg_glass_card"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="22dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -68,48 +92,53 @@
                         android:layout_weight="1"
                         android:text="@string/balance_label"
                         android:textColor="@color/mw_text_secondary"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonToggleBalance"
                         style="@style/Widget.MatsWallet.Button.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="0dp"
                         android:minWidth="0dp"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="6dp"
                         android:text="@string/balance_hide_action"
-                        android:textSize="12sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/textEthBalance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:text="@string/sample_eth_balance"
                     android:textColor="@color/mw_text_primary"
-                    android:textSize="34sp"
+                    android:textSize="36sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/textFiatBalance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4dp"
                     android:text="@string/sample_fiat_balance"
                     android:textColor="@color/mw_text_secondary"
-                    android:textSize="15sp" />
+                    android:textSize="14sp" />
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:background="@drawable/bg_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -124,170 +153,209 @@
                             android:layout_height="wrap_content"
                             android:text="@string/wallet_address_label"
                             android:textColor="@color/mw_text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="11sp" />
 
                         <TextView
                             android:id="@+id/textWalletAddress"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
+                            android:ellipsize="middle"
+                            android:maxLines="1"
                             android:text="@string/sample_wallet_address"
                             android:textColor="@color/mw_text_primary"
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <com.google.android.material.button.MaterialButton
+                    <ImageButton
                         android:id="@+id/buttonCopyAddress"
-                        style="@style/Widget.MatsWallet.Button.Secondary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:minWidth="0dp"
-                        android:text="@string/copy_action" />
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_circle_icon_btn"
+                        android:contentDescription="@string/copy_action"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_copy_24"
+                        android:tint="@color/mw_text_primary" />
 
-                    <com.google.android.material.button.MaterialButton
+                    <ImageButton
                         android:id="@+id/buttonShowQr"
-                        style="@style/Widget.MatsWallet.Button.Primary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minWidth="0dp"
-                        android:text="@string/qr_action" />
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_pill_accent"
+                        android:contentDescription="@string/qr_action"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_scan_24"
+                        android:tint="@color/black" />
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Quick actions -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="18dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonSend"
-                    style="@style/Widget.MatsWallet.Button.Tonal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:minLines="1"
-                    android:paddingHorizontal="8dp"
-                    android:textSize="12sp"
-                    android:text="@string/send_action" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonReceive"
-                    style="@style/Widget.MatsWallet.Button.Tonal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:minLines="1"
-                    android:paddingHorizontal="8dp"
-                    android:textSize="12sp"
-                    android:text="@string/receive_action" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonBuy"
-                    style="@style/Widget.MatsWallet.Button.Tonal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:minLines="1"
-                    android:paddingHorizontal="8dp"
-                    android:textSize="12sp"
-                    android:text="@string/buy_action" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonRefresh"
-                    style="@style/Widget.MatsWallet.Button.Tonal"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:minLines="1"
-                    android:paddingHorizontal="8dp"
-                    android:textSize="12sp"
-                    android:text="@string/refresh_action" />
-            </LinearLayout>
+                    android:gravity="center"
+                    android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_trust_card"
-                android:orientation="vertical"
-                android:padding="18dp">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonSend"
+                        style="@style/Widget.MatsWallet.Button.Primary"
+                        android:layout_width="62dp"
+                        android:layout_height="62dp"
+                        android:gravity="center"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:padding="0dp"
+                        app:backgroundTint="@color/mw_highlight"
+                        app:cornerRadius="999dp"
+                        app:icon="@drawable/ic_quick_send_24"
+                        app:iconGravity="textTop"
+                        app:iconPadding="0dp"
+                        app:iconSize="28dp"
+                        app:iconTint="@color/black" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/trust_card_title"
-                    android:textColor="@color/mw_text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/trust_card_subtitle"
-                    android:textColor="@color/mw_text_secondary"
-                    android:textSize="13sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/send_action"
+                        android:textColor="@color/mw_text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:orientation="horizontal">
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonReceive"
+                        style="@style/Widget.MatsWallet.Button.Tonal"
+                        android:layout_width="62dp"
+                        android:layout_height="62dp"
+                        android:gravity="center"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:padding="0dp"
+                        app:backgroundTint="@color/mw_surface_elevated"
+                        app:cornerRadius="999dp"
+                        app:icon="@drawable/ic_quick_receive_24"
+                        app:iconGravity="textTop"
+                        app:iconPadding="0dp"
+                        app:iconSize="28dp"
+                        app:iconTint="@color/mw_highlight"
+                        app:strokeColor="@color/mw_stroke_soft"
+                        app:strokeWidth="1dp" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_card_surface_elevated"
-                        android:gravity="center"
-                        android:paddingVertical="10dp"
-                        android:text="@string/trust_badge_keystore"
-                        android:textColor="@color/mw_highlight"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/receive_action"
+                        android:textColor="@color/mw_text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonQuickSwap"
+                        style="@style/Widget.MatsWallet.Button.Tonal"
+                        android:layout_width="62dp"
+                        android:layout_height="62dp"
+                        android:gravity="center"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:padding="0dp"
+                        app:backgroundTint="@color/mw_surface_elevated"
+                        app:cornerRadius="999dp"
+                        app:icon="@drawable/ic_swap_24"
+                        app:iconGravity="textTop"
+                        app:iconPadding="0dp"
+                        app:iconSize="28dp"
+                        app:iconTint="@color/mw_highlight"
+                        app:strokeColor="@color/mw_stroke_soft"
+                        app:strokeWidth="1dp" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_card_surface_elevated"
-                        android:gravity="center"
-                        android:paddingVertical="10dp"
-                        android:text="@string/trust_badge_gas"
-                        android:textColor="@color/mw_highlight"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/swap_label"
+                        android:textColor="@color/mw_text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
+                </LinearLayout>
 
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonPromo"
+                        style="@style/Widget.MatsWallet.Button.Tonal"
+                        android:layout_width="62dp"
+                        android:layout_height="62dp"
+                        android:gravity="center"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:padding="0dp"
+                        app:backgroundTint="@color/mw_surface_elevated"
+                        app:cornerRadius="999dp"
+                        app:icon="@drawable/ic_quick_guide_24"
+                        app:iconGravity="textTop"
+                        app:iconPadding="0dp"
+                        app:iconSize="28dp"
+                        app:iconTint="@color/mw_highlight"
+                        app:strokeColor="@color/mw_stroke_soft"
+                        app:strokeWidth="1dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/promo_button"
+                        android:textColor="@color/mw_text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Chart card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="22dp"
                 android:background="@drawable/bg_card_surface"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="20dp">
 
                 <TextView
                     android:id="@+id/textChartTitle"
@@ -295,7 +363,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/native_chart_loading"
                     android:textColor="@color/mw_text_primary"
-                    android:textSize="18sp"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -305,7 +373,22 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/native_chart_loading"
                     android:textColor="@color/mw_text_secondary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
+
+                <HorizontalScrollView
+                    android:id="@+id/chartSelectorScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/layoutChartSelector"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
 
                 <com.github.mikephil.charting.charts.CandleStickChart
                     android:id="@+id/chartEthPrice"
@@ -314,14 +397,75 @@
                     android:layout_marginTop="14dp" />
             </LinearLayout>
 
+            <!-- Trust card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_trust_card"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/trust_card_title"
+                    android:textColor="@color/mw_highlight"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/trust_card_subtitle"
+                    android:textColor="@color/mw_text_secondary"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_pill_highlight_ghost"
+                        android:gravity="center"
+                        android:paddingVertical="10dp"
+                        android:text="@string/trust_badge_keystore"
+                        android:textColor="@color/mw_highlight"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_pill_highlight_ghost"
+                        android:gravity="center"
+                        android:paddingVertical="10dp"
+                        android:text="@string/trust_badge_gas"
+                        android:textColor="@color/mw_highlight"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Asset section -->
             <LinearLayout
                 android:id="@+id/assetSectionCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="22dp"
                 android:background="@drawable/bg_asset_section_shell"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -339,50 +483,42 @@
                         android:textStyle="bold" />
 
                     <ImageButton
-                        android:id="@+id/buttonAssetHistory"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:background="@drawable/bg_pin_key_action"
-                        android:contentDescription="@string/asset_history_action"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_history_24" />
-
-                    <ImageButton
                         android:id="@+id/buttonAssetFilter"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_pin_key_action"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_circle_icon_btn"
                         android:contentDescription="@string/asset_filter_action"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_filter_24" />
+                        android:padding="9dp"
+                        android:src="@drawable/ic_filter_24"
+                        android:tint="@color/mw_text_primary" />
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/textAssetFilterStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="6dp"
                     android:text="@string/asset_filter_positive_only"
                     android:textColor="@color/mw_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
+                <!-- Tabs -->
                 <LinearLayout
                     android:id="@+id/assetTabs"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
+                    android:background="@drawable/bg_section_pill"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
                     <LinearLayout
                         android:id="@+id/tabCrypto"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical">
 
@@ -390,27 +526,27 @@
                             android:id="@+id/textTabCrypto"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:background="@drawable/bg_pill_accent"
+                            android:paddingHorizontal="20dp"
+                            android:paddingVertical="9dp"
                             android:text="@string/asset_tab_crypto"
-                            android:textColor="@color/mw_text_primary"
-                            android:textSize="20sp"
+                            android:textColor="@color/black"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <View
                             android:id="@+id/indicatorTabCrypto"
-                            android:layout_width="72dp"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_asset_tab_indicator" />
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/tabNfts"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical">
 
@@ -418,32 +554,56 @@
                             android:id="@+id/textTabNfts"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:paddingHorizontal="20dp"
+                            android:paddingVertical="9dp"
                             android:text="@string/asset_tab_nfts"
                             android:textColor="@color/mw_text_secondary"
-                            android:textSize="20sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <View
                             android:id="@+id/indicatorTabNfts"
-                            android:layout_width="72dp"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_asset_tab_indicator"
-                            android:visibility="invisible" />
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="16dp"
                     android:background="@drawable/bg_asset_section_divider" />
+
+                <!-- Column header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Name"
+                        android:textColor="@color/mw_text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Balance / Value"
+                        android:textColor="@color/mw_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerTokens"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="10dp"
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_token" />
 
@@ -481,40 +641,6 @@
                         android:textColor="@color/mw_text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/bg_promo_banner"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/promo_title"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/promo_subtitle"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonPromo"
-                    style="@style/Widget.MatsWallet.Button.Secondary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/promo_button" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

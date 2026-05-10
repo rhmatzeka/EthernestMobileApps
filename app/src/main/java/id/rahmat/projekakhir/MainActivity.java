@@ -9,6 +9,7 @@ import id.rahmat.projekakhir.databinding.ActivityMainBinding;
 import id.rahmat.projekakhir.ui.base.BaseActivity;
 import id.rahmat.projekakhir.ui.history.HistoryFragment;
 import id.rahmat.projekakhir.ui.home.HomeFragment;
+import id.rahmat.projekakhir.ui.market.MarketFragment;
 import id.rahmat.projekakhir.ui.settings.SettingsFragment;
 import id.rahmat.projekakhir.ui.swap.SwapFragment;
 import id.rahmat.projekakhir.utils.WindowInsetsHelper;
@@ -29,6 +30,8 @@ public class MainActivity extends BaseActivity {
             return true;
         });
 
+        binding.fabCenterAction.setOnClickListener(v -> openSwap());
+
         if (savedInstanceState == null) {
             binding.bottomNavigation.setSelectedItemId(R.id.menu_home);
         }
@@ -41,9 +44,9 @@ public class MainActivity extends BaseActivity {
         if (itemId == R.id.menu_history) {
             fragment = new HistoryFragment();
             tag = "history";
-        } else if (itemId == R.id.menu_swap) {
-            fragment = new SwapFragment();
-            tag = "swap";
+        } else if (itemId == R.id.menu_market) {
+            fragment = new MarketFragment();
+            tag = "market";
         } else if (itemId == R.id.menu_settings) {
             fragment = new SettingsFragment();
             tag = "settings";
@@ -52,6 +55,14 @@ public class MainActivity extends BaseActivity {
             tag = "home";
         }
 
+        replaceMainFragment(fragment, tag);
+    }
+
+    public void openSwap() {
+        replaceMainFragment(new SwapFragment(), "swap");
+    }
+
+    private void replaceMainFragment(@NonNull Fragment fragment, @NonNull String tag) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(binding.mainFragmentContainer.getId(), fragment, tag)

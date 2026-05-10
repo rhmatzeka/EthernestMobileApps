@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,10 +26,10 @@ import com.github.mikephil.charting.data.CandleData;
 import com.github.mikephil.charting.data.CandleDataSet;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import id.rahmat.projekakhir.MainActivity;
 import id.rahmat.projekakhir.R;
 import id.rahmat.projekakhir.databinding.FragmentHomeBinding;
 import id.rahmat.projekakhir.ui.base.BaseFragment;
-import id.rahmat.projekakhir.ui.buy.BuyActivity;
 import id.rahmat.projekakhir.ui.receive.ReceiveActivity;
 import id.rahmat.projekakhir.ui.send.SendActivity;
 import id.rahmat.projekakhir.utils.AppPreferences;
@@ -50,6 +51,10 @@ public class HomeFragment extends BaseFragment {
     private HomeViewModel.HomeUiState currentState;
     private java.util.List<TokenItem> currentAssets = new java.util.ArrayList<>();
     private java.util.List<NftItem> currentNfts = new java.util.ArrayList<>();
+    private java.util.List<HomeViewModel.ChartItem> currentChartItems = new java.util.ArrayList<>();
+    private final java.util.Set<String> loadingChartIds = new java.util.HashSet<>();
+    private final java.util.Set<String> loadedChartIds = new java.util.HashSet<>();
+    private int selectedChartIndex = 0;
 
     @Nullable
     @Override
@@ -71,6 +76,7 @@ public class HomeFragment extends BaseFragment {
         setupActions();
         setupAssetTabs();
         observeState();
+        observeChartState();
         renderAssetFilterStatus();
     }
 
@@ -83,7 +89,7 @@ public class HomeFragment extends BaseFragment {
     private void setupActions() {
         binding.buttonSend.setOnClickListener(v -> startActivity(new Intent(requireContext(), SendActivity.class)));
         binding.buttonReceive.setOnClickListener(v -> startActivity(new Intent(requireContext(), ReceiveActivity.class)));
-        binding.buttonBuy.setOnClickListener(v -> startActivity(new Intent(requireContext(), BuyActivity.class)));
+        binding.buttonQuickSwap.setOnClickListener(v -> openSwapTab());
         binding.buttonRefresh.setOnClickListener(v -> {
             binding.homeSwipeRefresh.setRefreshing(true);
             viewModel.refresh();
@@ -145,18 +151,17 @@ public class HomeFragment extends BaseFragment {
         boolean cryptoSelected = selectedAssetTab == ASSET_TAB_CRYPTO;
         boolean nftsSelected = selectedAssetTab == ASSET_TAB_NFTS;
 
-        binding.textTabCrypto.setTextColor(getColor(cryptoSelected));
-        binding.textTabNfts.setTextColor(getColor(nftsSelected));
-
-        binding.indicatorTabCrypto.setVisibility(cryptoSelected ? View.VISIBLE : View.INVISIBLE);
-        binding.indicatorTabNfts.setVisibility(nftsSelected ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    private int getColor(boolean selected) {
-        return androidx.core.content.ContextCompat.getColor(
+        binding.textTabCrypto.setTextColor(androidx.core.content.ContextCompat.getColor(
                 requireContext(),
-                selected ? R.color.mw_text_primary : R.color.mw_text_secondary
-        );
+                cryptoSelected ? R.color.black : R.color.mw_text_secondary));
+        binding.textTabNfts.setTextColor(androidx.core.content.ContextCompat.getColor(
+                requireContext(),
+                nftsSelected ? R.color.black : R.color.mw_text_secondary));
+
+        binding.textTabCrypto.setBackgroundResource(
+                cryptoSelected ? R.drawable.bg_pill_accent : android.R.color.transparent);
+        binding.textTabNfts.setBackgroundResource(
+                nftsSelected ? R.drawable.bg_pill_accent : android.R.color.transparent);
     }
 
     private void renderAssetContent() {
@@ -195,6 +200,12 @@ public class HomeFragment extends BaseFragment {
         BottomNavigationView bottomNavigation = requireActivity().findViewById(R.id.bottomNavigation);
         if (bottomNavigation != null) {
             bottomNavigation.setSelectedItemId(R.id.menu_history);
+        }
+    }
+
+    private void openSwapTab() {
+        if (requireActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).openSwap();
         }
     }
 
@@ -238,8 +249,14 @@ public class HomeFragment extends BaseFragment {
             binding.textWalletAddress.setText(state.shortAddress);
             renderBalances();
             binding.textNetworkBadge.setText(state.networkName);
-            binding.textChartTitle.setText(state.chartTitle);
-            binding.textChartSubtitle.setText(state.chartSubtitle);
+            currentChartItems = state.chartItems == null
+                    ? new java.util.ArrayList<>()
+                    : state.chartItems;
+            loadingChartIds.clear();
+            loadedChartIds.clear();
+            selectedChartIndex = 0;
+            renderChartSelector();
+            renderSelectedChart();
 
             currentAssets = state.assets == null ? new java.util.ArrayList<>() : state.assets;
             renderTokenList();
@@ -250,30 +267,120 @@ public class HomeFragment extends BaseFragment {
             renderAssetContent();
             renderAssetFilterStatus();
 
-            if (state.chartEntries == null || state.chartEntries.isEmpty()) {
-                binding.chartEthPrice.clear();
-                binding.chartEthPrice.setNoDataText(getString(R.string.native_chart_loading));
-                binding.chartEthPrice.invalidate();
-            } else {
-                CandleDataSet dataSet = new CandleDataSet(state.chartEntries, state.nativeAssetSymbol);
-                dataSet.setShadowColorSameAsCandle(true);
-                dataSet.setIncreasingColor(Color.parseColor("#3DD598"));
-                dataSet.setIncreasingPaintStyle(android.graphics.Paint.Style.FILL);
-                dataSet.setDecreasingColor(Color.parseColor("#E94560"));
-                dataSet.setDecreasingPaintStyle(android.graphics.Paint.Style.FILL);
-                dataSet.setNeutralColor(Color.parseColor("#66A9FF"));
-                dataSet.setShadowWidth(0.9f);
-                dataSet.setBarSpace(0.26f);
-                dataSet.setDrawValues(false);
-                binding.chartEthPrice.setData(new CandleData(dataSet));
-                binding.chartEthPrice.animateY(450);
-                binding.chartEthPrice.invalidate();
-            }
-
             if (state.errorMessage != null && !state.errorMessage.isEmpty()) {
                 showMessage(state.errorMessage);
             }
         });
+    }
+
+    private void observeChartState() {
+        viewModel.getChartState().observe(getViewLifecycleOwner(), chartItem -> {
+            if (chartItem == null || binding == null) {
+                return;
+            }
+            loadingChartIds.remove(chartItem.assetId);
+            loadedChartIds.add(chartItem.assetId);
+            for (int i = 0; i < currentChartItems.size(); i++) {
+                HomeViewModel.ChartItem existing = currentChartItems.get(i);
+                if (existing.assetId.equals(chartItem.assetId)) {
+                    currentChartItems.set(i, chartItem);
+                    if (i == selectedChartIndex) {
+                        renderSelectedChart();
+                    }
+                    return;
+                }
+            }
+        });
+    }
+
+    private void renderChartSelector() {
+        if (binding == null) {
+            return;
+        }
+        binding.layoutChartSelector.removeAllViews();
+        binding.chartSelectorScroll.setVisibility(currentChartItems.size() > 1 ? View.VISIBLE : View.GONE);
+
+        for (int i = 0; i < currentChartItems.size(); i++) {
+            final int index = i;
+            TextView chip = new TextView(requireContext());
+            chip.setText(currentChartItems.get(i).symbol);
+            chip.setTextSize(12f);
+            chip.setTextColor(androidx.core.content.ContextCompat.getColor(
+                    requireContext(),
+                    index == selectedChartIndex ? R.color.black : R.color.mw_text_secondary
+            ));
+            chip.setTypeface(chip.getTypeface(), android.graphics.Typeface.BOLD);
+            chip.setGravity(android.view.Gravity.CENTER);
+            chip.setMinWidth(dp(58));
+            chip.setPadding(dp(16), dp(8), dp(16), dp(8));
+            chip.setBackgroundResource(index == selectedChartIndex
+                    ? R.drawable.bg_pill_accent
+                    : R.drawable.bg_section_pill);
+            chip.setOnClickListener(v -> {
+                selectedChartIndex = index;
+                renderChartSelector();
+                renderSelectedChart();
+            });
+
+            android.widget.LinearLayout.LayoutParams params = new android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMarginEnd(dp(8));
+            binding.layoutChartSelector.addView(chip, params);
+        }
+    }
+
+    private void renderSelectedChart() {
+        if (binding == null) {
+            return;
+        }
+        if (currentChartItems.isEmpty()) {
+            binding.textChartTitle.setText(currentState == null ? getString(R.string.native_chart_loading) : currentState.chartTitle);
+            binding.textChartSubtitle.setText(getString(R.string.native_chart_loading));
+            binding.chartEthPrice.clear();
+            binding.chartEthPrice.setNoDataText(getString(R.string.native_chart_loading));
+            binding.chartEthPrice.invalidate();
+            return;
+        }
+
+        int safeIndex = Math.min(selectedChartIndex, currentChartItems.size() - 1);
+        HomeViewModel.ChartItem chartItem = currentChartItems.get(safeIndex);
+        binding.textChartTitle.setText(chartItem.title);
+        binding.textChartSubtitle.setText(chartItem.subtitle);
+
+        if (chartItem.entries == null || chartItem.entries.isEmpty()) {
+            binding.chartEthPrice.clear();
+            binding.chartEthPrice.setNoDataText(getString(
+                    loadedChartIds.contains(chartItem.assetId)
+                            ? R.string.native_chart_unavailable
+                            : R.string.native_chart_loading
+            ));
+            binding.chartEthPrice.invalidate();
+            if (!loadingChartIds.contains(chartItem.assetId) && !loadedChartIds.contains(chartItem.assetId)) {
+                loadingChartIds.add(chartItem.assetId);
+                viewModel.loadChart(chartItem);
+            }
+            return;
+        }
+
+        CandleDataSet dataSet = new CandleDataSet(chartItem.entries, chartItem.symbol);
+        dataSet.setShadowColorSameAsCandle(true);
+        dataSet.setIncreasingColor(Color.parseColor("#C3F53C"));
+        dataSet.setIncreasingPaintStyle(android.graphics.Paint.Style.FILL);
+        dataSet.setDecreasingColor(Color.parseColor("#FF4D6A"));
+        dataSet.setDecreasingPaintStyle(android.graphics.Paint.Style.FILL);
+        dataSet.setNeutralColor(Color.parseColor("#8A8A90"));
+        dataSet.setShadowWidth(0.9f);
+        dataSet.setBarSpace(0.26f);
+        dataSet.setDrawValues(false);
+        binding.chartEthPrice.setData(new CandleData(dataSet));
+        binding.chartEthPrice.animateY(450);
+        binding.chartEthPrice.invalidate();
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void renderBalances() {
@@ -289,7 +396,7 @@ public class HomeFragment extends BaseFragment {
             return;
         }
         binding.textEthBalance.setText(currentState.balancePrimary);
-        binding.textFiatBalance.setText(currentState.balanceIdr + " | " + currentState.balanceUsd);
+        binding.textFiatBalance.setText(currentState.balanceIdr);
     }
 
     private void renderTokenList() {

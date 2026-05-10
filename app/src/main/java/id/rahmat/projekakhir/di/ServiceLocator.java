@@ -18,6 +18,8 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.util.concurrent.TimeUnit;
+
 public final class ServiceLocator {
 
     private static WalletRepository walletRepository;
@@ -81,6 +83,9 @@ public final class ServiceLocator {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
         OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(6, TimeUnit.SECONDS)
+                .readTimeout(8, TimeUnit.SECONDS)
+                .writeTimeout(8, TimeUnit.SECONDS)
                 .addInterceptor(loggingInterceptor)
                 .build();
 

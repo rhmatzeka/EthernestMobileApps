@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="72dp"
+    android:viewportWidth="360"
+    android:viewportHeight="72">
+    <!-- Pill nav with a half-circle notch cut out on top-center for the FAB -->
+    <path
+        android:fillColor="#121214"
+        android:strokeColor="#24242A"
+        android:strokeWidth="1"
+        android:pathData="M36,0
+                         L144,0
+                         A36,36 0 0 0 216,0
+                         L324,0
+                         A36,36 0 0 1 360,36
+                         L360,36
+                         A36,36 0 0 1 324,72
+                         L36,72
+                         A36,36 0 0 1 0,36
+                         L0,36
+                         A36,36 0 0 1 36,0
+                         Z" />
+</vector>

@@ -72,6 +72,10 @@ public class WalletRepository {
         return EthereumNetworkRegistry.resolve(appPreferences.getSelectedNetwork(), appPreferences);
     }
 
+    public List<EthereumNetwork> getAvailableNetworks() {
+        return EthereumNetworkRegistry.getAll(appPreferences);
+    }
+
     public void clearSession() {
         walletManager.clearWallet();
         appPreferences.clearSession();
