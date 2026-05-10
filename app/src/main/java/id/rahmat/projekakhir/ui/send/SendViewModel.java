@@ -66,6 +66,10 @@ public class SendViewModel extends AndroidViewModel {
         return walletRepository.getSelectedNetwork().getNativeSymbol();
     }
 
+    public long getSelectedNetworkChainId() {
+        return walletRepository.getSelectedNetwork().getChainId();
+    }
+
     public int getSelectedNetworkIconRes() {
         EthereumNetwork network = walletRepository.getSelectedNetwork();
         if (EthereumNetwork.BSC.isSameNetwork(network)) {

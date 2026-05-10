@@ -1,18 +1,30 @@
 package id.rahmat.projekakhir.ui.send;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.journeyapps.barcodescanner.ScanContract;
-import com.journeyapps.barcodescanner.ScanOptions;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import id.rahmat.projekakhir.R;
 import id.rahmat.projekakhir.databinding.ActivitySendBinding;
@@ -23,20 +35,38 @@ import id.rahmat.projekakhir.wallet.WalletManager;
 
 public class SendActivity extends BaseActivity {
 
+    private static final Pattern ADDRESS_PATTERN = Pattern.compile("(?i)0x[a-f0-9]{40}");
+    private static final Pattern CHAIN_ID_PATTERN = Pattern.compile("@([0-9]+)");
+
     private ActivitySendBinding binding;
     private SendViewModel viewModel;
     private WalletManager walletManager;
-    private final ActivityResultLauncher<ScanOptions> qrLauncher = registerForActivityResult(new ScanContract(), result -> {
-        String scannedAddress = normalizeScannedAddress(result.getContents());
-        if (scannedAddress.isEmpty()) {
+    private final ActivityResultLauncher<String> cameraPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            granted -> {
+                if (Boolean.TRUE.equals(granted)) {
+                    launchQrScanner();
+                } else {
+                    showMessage(getString(R.string.scan_camera_permission_denied));
+                }
+            }
+    );
+    private final ActivityResultLauncher<Intent> qrLauncher = registerForActivityResult(new StartActivityForResult(), result -> {
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {
             showMessage(getString(R.string.scan_cancelled));
             return;
         }
-        if (!walletManager.isValidAddress(scannedAddress)) {
+        String rawResult = result.getData().getStringExtra(QrScannerActivity.EXTRA_QR_CONTENT);
+        if (rawResult == null || rawResult.trim().isEmpty()) {
+            showMessage(getString(R.string.scan_cancelled));
+            return;
+        }
+        ScannedPayment payment = parseScannedPayment(rawResult);
+        if (payment.address.isEmpty() || !walletManager.isValidAddress(payment.address)) {
             showMessage(getString(R.string.scan_invalid));
             return;
         }
-        binding.inputRecipientAddress.setText(scannedAddress);
+        applyScannedPayment(payment);
     });
 
     @Override
@@ -135,13 +165,12 @@ public class SendActivity extends BaseActivity {
             return;
         }
         CharSequence text = clipData.getItemAt(0).coerceToText(this);
-        String address = normalizeScannedAddress(text == null ? "" : text.toString());
-        if (!walletManager.isValidAddress(address)) {
+        ScannedPayment payment = parseScannedPayment(text == null ? "" : text.toString());
+        if (!walletManager.isValidAddress(payment.address)) {
             showMessage(getString(R.string.send_clipboard_empty));
             return;
         }
-        binding.inputRecipientAddress.setText(address);
-        binding.inputRecipientAddress.setSelection(address.length());
+        applyScannedPayment(payment);
     }
 
     private void maybeEstimateGas() {
@@ -172,37 +201,144 @@ public class SendActivity extends BaseActivity {
     }
 
     private void startQrScanner() {
-        ScanOptions options = new ScanOptions();
-        options.setPrompt(getString(R.string.scan_qr_action));
-        options.setBeepEnabled(false);
-        options.setCaptureActivity(PortraitCaptureActivity.class);
-        options.setOrientationLocked(true);
-        qrLauncher.launch(options);
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            showMessage(getString(R.string.scan_camera_unavailable));
+            return;
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            launchQrScanner();
+            return;
+        }
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
     }
 
-    private String normalizeScannedAddress(String rawValue) {
+    private void launchQrScanner() {
+        qrLauncher.launch(new Intent(this, QrScannerActivity.class));
+    }
+
+    private void applyScannedPayment(ScannedPayment payment) {
+        binding.inputRecipientAddress.setText(payment.address);
+        binding.inputRecipientAddress.setSelection(payment.address.length());
+        if (!payment.amount.isEmpty()) {
+            binding.inputEthAmount.setText(payment.amount);
+            binding.inputEthAmount.setSelection(payment.amount.length());
+        }
+        if (payment.chainId != null && payment.chainId != viewModel.getSelectedNetworkChainId()) {
+            showMessage(getString(
+                    R.string.scan_network_mismatch,
+                    payment.chainId,
+                    viewModel.getSelectedNetworkName()
+            ));
+            return;
+        }
+        showMessage(payment.amount.isEmpty() ? getString(R.string.scan_success) : getString(R.string.scan_success_with_amount));
+    }
+
+    private ScannedPayment parseScannedPayment(String rawValue) {
         if (rawValue == null) {
-            return "";
+            return ScannedPayment.empty();
         }
-        String value = rawValue.trim();
+        String value = decodeQrText(rawValue.trim());
         if (value.isEmpty()) {
+            return ScannedPayment.empty();
+        }
+        Matcher addressMatcher = ADDRESS_PATTERN.matcher(value);
+        String address = addressMatcher.find() ? normalizeAddressPrefix(addressMatcher.group()) : "";
+        Long chainId = parseChainId(value);
+        String amount = parseAmount(value);
+        return new ScannedPayment(address, amount, chainId);
+    }
+
+    private String normalizeAddressPrefix(String address) {
+        if (address == null || address.length() < 2) {
             return "";
         }
-        if (value.regionMatches(true, 0, "ethereum:", 0, "ethereum:".length())) {
-            value = value.substring("ethereum:".length());
+        return "0x" + address.substring(2);
+    }
+
+    private String decodeQrText(String value) {
+        try {
+            return URLDecoder.decode(value, StandardCharsets.UTF_8.name()).trim();
+        } catch (Exception exception) {
+            return value.trim();
         }
-        if (value.startsWith("//")) {
-            value = value.substring(2);
+    }
+
+    private Long parseChainId(String value) {
+        Matcher matcher = CHAIN_ID_PATTERN.matcher(value);
+        if (!matcher.find()) {
+            return null;
         }
+        try {
+            return Long.parseLong(matcher.group(1));
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private String parseAmount(String value) {
+        String query = extractQuery(value);
+        if (query.isEmpty()) {
+            return "";
+        }
+        String decimalAmount = "";
+        for (String part : query.split("&")) {
+            int separator = part.indexOf('=');
+            if (separator <= 0) {
+                continue;
+            }
+            String key = decodeQrText(part.substring(0, separator)).toLowerCase(Locale.US);
+            String paramValue = decodeQrText(part.substring(separator + 1));
+            if (("amount".equals(key) || "amounteth".equals(key) || "ether".equals(key)) && isPositiveDecimal(paramValue)) {
+                decimalAmount = normalizeDecimal(paramValue);
+            }
+            if (("value".equals(key) || "uint256".equals(key)) && isPositiveDecimal(paramValue)) {
+                return normalizeWeiAmount(paramValue);
+            }
+        }
+        return decimalAmount;
+    }
+
+    private String extractQuery(String value) {
         int queryIndex = value.indexOf('?');
-        if (queryIndex >= 0) {
-            value = value.substring(0, queryIndex);
+        if (queryIndex < 0 || queryIndex == value.length() - 1) {
+            return "";
         }
-        int atIndex = value.indexOf('@');
-        if (atIndex >= 0) {
-            value = value.substring(0, atIndex);
+        int fragmentIndex = value.indexOf('#', queryIndex);
+        return fragmentIndex >= 0
+                ? value.substring(queryIndex + 1, fragmentIndex)
+                : value.substring(queryIndex + 1);
+    }
+
+    private boolean isPositiveDecimal(String value) {
+        try {
+            return new BigDecimal(value).compareTo(BigDecimal.ZERO) > 0;
+        } catch (Exception exception) {
+            return false;
         }
-        return value.trim();
+    }
+
+    private String normalizeWeiAmount(String value) {
+        try {
+            return formatAmount(new BigDecimal(value).movePointLeft(18));
+        } catch (Exception exception) {
+            return "";
+        }
+    }
+
+    private String normalizeDecimal(String value) {
+        try {
+            return formatAmount(new BigDecimal(value));
+        } catch (Exception exception) {
+            return "";
+        }
+    }
+
+    private String formatAmount(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return "";
+        }
+        return amount.stripTrailingZeros().toPlainString();
     }
 
     private String formatGas(GasEstimation gasEstimation) {
@@ -225,6 +361,22 @@ public class SendActivity extends BaseActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+    }
+
+    private static class ScannedPayment {
+        final String address;
+        final String amount;
+        final Long chainId;
+
+        ScannedPayment(String address, String amount, Long chainId) {
+            this.address = address == null ? "" : address.trim();
+            this.amount = amount == null ? "" : amount.trim();
+            this.chainId = chainId;
+        }
+
+        static ScannedPayment empty() {
+            return new ScannedPayment("", "", null);
         }
     }
 }

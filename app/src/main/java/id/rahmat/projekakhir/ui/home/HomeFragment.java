@@ -249,6 +249,7 @@ public class HomeFragment extends BaseFragment {
             binding.textWalletAddress.setText(state.shortAddress);
             renderBalances();
             binding.textNetworkBadge.setText(state.networkName);
+            binding.imageNetworkBadgeIcon.setImageResource(resolveNetworkIcon(state.nativeAssetSymbol));
             currentChartItems = state.chartItems == null
                     ? new java.util.ArrayList<>()
                     : state.chartItems;
@@ -397,6 +398,22 @@ public class HomeFragment extends BaseFragment {
         }
         binding.textEthBalance.setText(currentState.balancePrimary);
         binding.textFiatBalance.setText(currentState.balanceIdr);
+    }
+
+    private int resolveNetworkIcon(String symbol) {
+        if ("BNB".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_bnb_real;
+        }
+        if ("AVAX".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_avax_real;
+        }
+        if ("POL".equalsIgnoreCase(symbol) || "MATIC".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_polygon_real;
+        }
+        if ("FTM".equalsIgnoreCase(symbol)) {
+            return R.drawable.ic_token_fantom;
+        }
+        return R.drawable.ic_token_eth_real;
     }
 
     private void renderTokenList() {

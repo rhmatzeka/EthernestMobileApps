@@ -155,6 +155,15 @@
     <string name="recipient_address_label">Alamat Tujuan</string>
     <string name="recipient_address_hint">0x...</string>
     <string name="scan_qr_action">Scan QR</string>
+    <string name="scan_qr_prompt">Arahkan kamera ke QR wallet</string>
+    <string name="scan_camera_permission_denied">Izin kamera diperlukan untuk scan QR.</string>
+    <string name="scan_camera_unavailable">Kamera tidak tersedia di perangkat ini.</string>
+    <string name="scan_success">Alamat QR berhasil dimasukkan.</string>
+    <string name="scan_success_with_amount">Alamat dan amount dari QR berhasil dimasukkan.</string>
+    <string name="scan_network_mismatch">QR ini untuk chain %1$d. Network aktif sekarang %2$s.</string>
+    <string name="scan_screen_title">Scan Wallet QR</string>
+    <string name="scan_screen_subtitle">Pastikan QR berada di tengah frame dan layar penerima cukup terang.</string>
+    <string name="scan_flash_action">Nyalakan flash</string>
     <string name="amount_eth_label">Jumlah Aset</string>
     <string name="amount_eth_hint">0.00</string>
     <string name="amount_fiat_label">Estimasi Fiat</string>

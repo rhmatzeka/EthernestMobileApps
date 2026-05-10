@@ -43,6 +43,10 @@
         tools:targetApi="35">
 
         <activity
+            android:name=".ui.send.QrScannerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ui.send.PortraitCaptureActivity"
             android:exported="false"
             android:screenOrientation="portrait" />

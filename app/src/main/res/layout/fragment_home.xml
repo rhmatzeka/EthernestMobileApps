@@ -27,20 +27,32 @@
                 android:paddingHorizontal="20dp"
                 android:paddingTop="20dp">
 
-                <TextView
-                    android:id="@+id/textNetworkBadge"
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="46dp"
                     android:background="@drawable/bg_section_pill"
-                    android:drawableStart="@drawable/ic_token_eth_real"
-                    android:drawablePadding="8dp"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="14dp"
-                    android:paddingVertical="8dp"
-                    android:text="@string/network_sepolia"
-                    android:textColor="@color/mw_text_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="14dp">
+
+                    <ImageView
+                        android:id="@+id/imageNetworkBadgeIcon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_token_eth_real" />
+
+                    <TextView
+                        android:id="@+id/textNetworkBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="9dp"
+                        android:includeFontPadding="false"
+                        android:text="@string/network_sepolia"
+                        android:textColor="@color/mw_text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <Space
                     android:layout_width="0dp"
@@ -112,9 +124,17 @@
 
                 <TextView
                     android:id="@+id/textEthBalance"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:autoSizeMaxTextSize="36sp"
+                    android:autoSizeMinTextSize="24sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:singleLine="true"
                     android:text="@string/sample_eth_balance"
                     android:textColor="@color/mw_text_primary"
                     android:textSize="36sp"
@@ -122,9 +142,16 @@
 
                 <TextView
                     android:id="@+id/textFiatBalance"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
+                    android:autoSizeMaxTextSize="14sp"
+                    android:autoSizeMinTextSize="11sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
                     android:text="@string/sample_fiat_balance"
                     android:textColor="@color/mw_text_secondary"
                     android:textSize="14sp" />

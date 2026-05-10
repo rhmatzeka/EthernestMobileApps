@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/qrScannerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/zxingBarcodeScanner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:zxing_preview_scaling_strategy="centerCrop"
+        app:zxing_use_texture_view="true" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_scanner_scrim" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="14dp">
+
+        <ImageButton
+            android:id="@+id/buttonCloseScanner"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_scanner_action"
+            android:contentDescription="@string/back_action"
+            android:padding="10dp"
+            android:src="@drawable/ic_back_24"
+            android:tint="@color/mw_text_primary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="14dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/scan_screen_title"
+            android:textColor="@color/mw_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/buttonFlashScanner"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:alpha="0.72"
+            android:background="@drawable/bg_scanner_action"
+            android:contentDescription="@string/scan_flash_action"
+            android:padding="10dp"
+            android:src="@drawable/ic_flash_24"
+            android:tint="@color/mw_text_primary" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="270dp"
+        android:layout_height="270dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_scanner_frame">
+
+        <View
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="top|start"
+            android:background="@drawable/bg_scanner_corner_top_start" />
+
+        <View
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_scanner_corner_top_end" />
+
+        <View
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="bottom|start"
+            android:background="@drawable/bg_scanner_corner_bottom_start" />
+
+        <View
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_scanner_corner_bottom_end" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_scanner_panel"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/bg_pill_accent"
+            android:padding="10dp"
+            android:src="@drawable/ic_scan_24"
+            android:tint="@color/black" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_qr_prompt"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/scan_screen_subtitle"
+                android:textColor="@color/mw_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
