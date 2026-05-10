@@ -90,6 +90,7 @@ public class HomeFragment extends BaseFragment {
         binding.buttonSend.setOnClickListener(v -> startActivity(new Intent(requireContext(), SendActivity.class)));
         binding.buttonReceive.setOnClickListener(v -> startActivity(new Intent(requireContext(), ReceiveActivity.class)));
         binding.buttonQuickSwap.setOnClickListener(v -> openSwapTab());
+        binding.buttonAiAdvisor.setOnClickListener(v -> openAiAdvisor());
         binding.buttonRefresh.setOnClickListener(v -> {
             binding.homeSwipeRefresh.setRefreshing(true);
             viewModel.refresh();
@@ -206,6 +207,12 @@ public class HomeFragment extends BaseFragment {
     private void openSwapTab() {
         if (requireActivity() instanceof MainActivity) {
             ((MainActivity) requireActivity()).openSwap();
+        }
+    }
+
+    private void openAiAdvisor() {
+        if (requireActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).openAiAdvisor();
         }
     }
 

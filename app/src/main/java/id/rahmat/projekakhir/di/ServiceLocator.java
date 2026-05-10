@@ -6,6 +6,8 @@ import id.rahmat.projekakhir.BuildConfig;
 import id.rahmat.projekakhir.data.local.AppDatabase;
 import id.rahmat.projekakhir.data.remote.CoinGeckoApi;
 import id.rahmat.projekakhir.data.remote.EtherscanApi;
+import id.rahmat.projekakhir.data.remote.GdeltApi;
+import id.rahmat.projekakhir.data.repository.NewsRepository;
 import id.rahmat.projekakhir.data.repository.PriceRepository;
 import id.rahmat.projekakhir.data.repository.NftRepository;
 import id.rahmat.projekakhir.data.repository.TransactionRepository;
@@ -26,6 +28,7 @@ public final class ServiceLocator {
     private static TransactionRepository transactionRepository;
     private static PriceRepository priceRepository;
     private static NftRepository nftRepository;
+    private static NewsRepository newsRepository;
 
     private ServiceLocator() {
     }
@@ -76,6 +79,15 @@ public final class ServiceLocator {
             );
         }
         return nftRepository;
+    }
+
+    public static NewsRepository getNewsRepository(Context context) {
+        if (newsRepository == null) {
+            newsRepository = new NewsRepository(
+                    createRetrofit("https://api.gdeltproject.org/").create(GdeltApi.class)
+            );
+        }
+        return newsRepository;
     }
 
     private static Retrofit createRetrofit(String baseUrl) {

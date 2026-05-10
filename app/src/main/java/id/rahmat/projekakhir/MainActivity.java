@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import id.rahmat.projekakhir.databinding.ActivityMainBinding;
+import id.rahmat.projekakhir.ui.ai.AiAdvisorFragment;
 import id.rahmat.projekakhir.ui.base.BaseActivity;
 import id.rahmat.projekakhir.ui.history.HistoryFragment;
 import id.rahmat.projekakhir.ui.home.HomeFragment;
@@ -60,6 +61,10 @@ public class MainActivity extends BaseActivity {
 
     public void openSwap() {
         replaceMainFragment(new SwapFragment(), "swap");
+    }
+
+    public void openAiAdvisor() {
+        replaceMainFragment(new AiAdvisorFragment(), "ai_advisor");
     }
 
     private void replaceMainFragment(@NonNull Fragment fragment, @NonNull String tag) {

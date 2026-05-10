@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="150dp"
+    tools:context=".ui.ai.AiAdvisorFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_section_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_ai_24"
+                android:tint="@color/mw_highlight" />
+
+            <TextView
+                android:id="@+id/textAiRiskBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:includeFontPadding="false"
+                android:text="@string/ai_loading"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/ai_screen_title"
+            android:textColor="@color/mw_text_primary"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/ai_screen_subtitle"
+            android:textColor="@color/mw_text_secondary"
+            android:textSize="13sp" />
+
+        <ProgressBar
+            android:id="@+id/aiProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="16dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/mw_highlight" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_glass_card"
+            android:orientation="vertical"
+            android:padding="22dp">
+
+            <TextView
+                android:id="@+id/textAiRecommendationTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ai_loading"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textAiRecommendationBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/ai_loading"
+                android:textColor="@color/mw_text_secondary"
+                android:textSize="13sp" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/layoutStableSignals"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <TextView
+                android:id="@+id/textAiDisclaimer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/ai_disclaimer"
+                android:textColor="@color/mw_text_tertiary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ai_ask_title"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MatsWallet.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/ai_question_hint"
+                app:startIconDrawable="@drawable/ic_ai_24"
+                app:startIconTint="@color/mw_text_secondary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputAiQuestion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionSend"
+                    android:inputType="text"
+                    android:maxLines="3"
+                    android:textColor="@color/mw_text_primary"
+                    android:textColorHint="@color/mw_text_secondary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipQuestionWar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_pill_highlight_ghost"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="9dp"
+                        android:text="@string/ai_quick_war"
+                        android:textColor="@color/mw_highlight"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipQuestionSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_pill_highlight_ghost"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="9dp"
+                        android:text="@string/ai_quick_summary"
+                        android:textColor="@color/mw_highlight"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipQuestionStablecoin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_highlight_ghost"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="9dp"
+                        android:text="@string/ai_quick_stablecoin"
+                        android:textColor="@color/mw_highlight"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonAskAi"
+                style="@style/Widget.MatsWallet.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="12dp"
+                android:text="@string/ai_ask_action"
+                android:textColor="@color/black"
+                app:backgroundTint="@color/mw_highlight" />
+
+            <TextView
+                android:id="@+id/textAiAnswer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_pill_highlight_ghost"
+                android:padding="14dp"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/ai_news_title"
+                android:textColor="@color/mw_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/buttonRefreshAi"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_circle_icon_btn"
+                android:contentDescription="@string/refresh_action"
+                android:padding="10dp"
+                android:src="@drawable/ic_refresh_24"
+                android:tint="@color/mw_text_primary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutNewsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

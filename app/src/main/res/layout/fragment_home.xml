@@ -374,6 +374,60 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/buttonAiAdvisor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_glass_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="18dp">
+
+                <ImageView
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:background="@drawable/bg_pill_accent"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_ai_24"
+                    android:tint="@color/black" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ai_home_title"
+                        android:textColor="@color/mw_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/ai_home_subtitle"
+                        android:textColor="@color/mw_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="10dp"
+                    android:src="@drawable/ic_chevron_right_24"
+                    android:tint="@color/mw_text_secondary" />
+            </LinearLayout>
+
             <!-- Chart card -->
             <LinearLayout
                 android:layout_width="match_parent"
