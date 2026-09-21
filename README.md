@@ -158,3 +158,7 @@ For another token, set `POOL_TOKEN_SYMBOL` and `POOL_TOKEN_ADDRESS`, run `npm ru
 - Users' private keys are encrypted with the Android Keystore and EncryptedSharedPreferences.
 - The buy server's treasury key lives **only** in the backend `.env`, never in the app.
 - `local.properties` and `smart-contracts/.env` are ignored by Git, so secrets don't get pushed.
+
+## License
+
+Released under the [MIT License](LICENSE).
