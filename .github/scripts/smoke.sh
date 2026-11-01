@@ -61,6 +61,20 @@ tap_away() {
   dump
   [ -z "$(find_node "$1")" ] || { echo "::error::$1 did not react"; shot "stuck-$1"; return 1; }
 }
+# Tap $1 until $2 shows up (for taps that can land mid-transition).
+tap_until() {
+  wait_for "$1" || return 1
+  for _ in 1 2 3 4 5; do
+    dump
+    [ -n "$(find_node "$2")" ] && return 0
+    local xy
+    xy=$(find_node "$1")
+    # shellcheck disable=SC2086
+    [ -n "$xy" ] && adb shell input tap $xy
+    sleep 3
+  done
+  wait_for "$2" 5
+}
 shot() {
   adb exec-out screencap -p > "$OUT/$1.png" || true
   cp /tmp/ui.xml "$OUT/$1.xml" 2>/dev/null || true
@@ -101,7 +115,7 @@ step() {
 }
 
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
-step "onboarding: skip"        tap id:textSkip
+step "onboarding: skip"        tap_until id:textSkip id:buttonCreateWallet
 step "onboarding: create"      tap_away id:buttonCreateWallet
 step "pin: first entry"        tap id:inputPin 1
 adb shell input text 123456
