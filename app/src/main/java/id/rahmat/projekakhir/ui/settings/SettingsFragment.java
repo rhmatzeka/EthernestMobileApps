@@ -1,6 +1,9 @@
 package id.rahmat.projekakhir.ui.settings;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Looper;
+import android.os.Handler;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -135,14 +138,17 @@ public class SettingsFragment extends BaseFragment {
     }
 
     private void logout() {
+        // Capture the context up front: the fragment may be detached by the
+        // time the background work finishes, and requireContext() would throw.
+        Context appContext = requireContext().getApplicationContext();
         AppExecutors.io().execute(() -> {
             walletRepository.clearSession();
-            AppDatabase.getInstance(requireContext()).clearAllTables();
+            AppDatabase.getInstance(appContext).clearAllTables();
 
-            requireActivity().runOnUiThread(() -> {
-                Intent intent = new Intent(requireContext(), OnboardingActivity.class);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                Intent intent = new Intent(appContext, OnboardingActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
+                appContext.startActivity(intent);
             });
         });
     }

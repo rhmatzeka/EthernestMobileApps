@@ -9,7 +9,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.List;
 
 import id.rahmat.projekakhir.data.local.TransactionEntity;
@@ -64,6 +66,11 @@ public class HistoryViewModel extends AndroidViewModel {
         });
     }
 
+    private static String formatTimestamp(long timestamp) {
+        // e.g. "2 Nov 2026, 14:05" instead of Date.toString()'s "Mon Nov 02 14:05:00 GMT+07:00 2026".
+        return new SimpleDateFormat("d MMM yyyy, HH:mm", new Locale("id", "ID")).format(new Date(timestamp));
+    }
+
     private List<TransactionItem> mapTransactions(List<TransactionEntity> entities) {
         List<TransactionItem> items = new ArrayList<>();
         if (entities == null) {
@@ -78,7 +85,7 @@ public class HistoryViewModel extends AndroidViewModel {
             items.add(new TransactionItem(
                     entity.hash,
                     outgoing ? "Kirim ke " + shorten(entity.toAddress) : "Terima dari " + shorten(entity.fromAddress),
-                    new Date(entity.timestamp).toString(),
+                    formatTimestamp(entity.timestamp),
                     prefix + entity.amountEth + " " + nativeSymbol,
                     entity.gasFeeEth + " " + nativeSymbol,
                     entity.status,

@@ -22,13 +22,13 @@ fun localIntProperty(name: String, defaultValue: Int = 18): String {
         ?: defaultValue.toString()
 }
 
-// Free public endpoints used when no private RPC is configured, so the APK
+// Free public endpoints (publicnode.com, plus BNB Chain's own BSC RPC) used when no private RPC is configured, so the APK
 // published by CI works out of the box. Set your own URL in local.properties
 // (or INFURA_PROJECT_ID for Ethereum/Sepolia) for better rate limits.
 val publicRpcUrls = mapOf(
     "MAINNET" to "https://ethereum-rpc.publicnode.com",
     "SEPOLIA" to "https://ethereum-sepolia-rpc.publicnode.com",
-    "BSC" to "https://bsc-rpc.publicnode.com",
+    "BSC" to "https://bsc-dataseed.bnbchain.org",
     "AVALANCHE" to "https://avalanche-c-chain-rpc.publicnode.com",
     "POLYGON" to "https://polygon-bor-rpc.publicnode.com",
     "ARBITRUM" to "https://arbitrum-one-rpc.publicnode.com",
@@ -75,8 +75,8 @@ android {
 
         buildConfigField("String", "DEFAULT_ETH_NETWORK", "\"${localProperty("DEFAULT_ETH_NETWORK", "sepolia")}\"")
         buildConfigField("String", "COINGECKO_BASE_URL", "\"https://api.coingecko.com/api/v3/\"")
-        buildConfigField("String", "ETHERSCAN_MAINNET_BASE_URL", "\"https://api.etherscan.io/api/\"")
-        buildConfigField("String", "ETHERSCAN_SEPOLIA_BASE_URL", "\"https://api-sepolia.etherscan.io/api/\"")
+        // Etherscan API V2: one endpoint for every chain, picked with ?chainid=.
+        buildConfigField("String", "ETHERSCAN_BASE_URL", "\"https://api.etherscan.io/v2/api/\"")
         buildConfigField("String", "INFURA_PROJECT_ID", "\"${localProperty("INFURA_PROJECT_ID")}\"")
         for ((network, publicUrl) in publicRpcUrls) {
             buildConfigField("String", "${network}_RPC_URL", "\"${localProperty("${network}_RPC_URL", publicUrl)}\"")

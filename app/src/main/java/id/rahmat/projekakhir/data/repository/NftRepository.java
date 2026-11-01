@@ -10,12 +10,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import id.rahmat.projekakhir.BuildConfig;
 import id.rahmat.projekakhir.data.remote.EtherscanApi;
 import id.rahmat.projekakhir.data.remote.model.EtherscanNftTransferItem;
 import id.rahmat.projekakhir.data.remote.model.EtherscanNftTransfersResponse;
+import id.rahmat.projekakhir.utils.AppExecutors;
 import id.rahmat.projekakhir.utils.AppPreferences;
 import id.rahmat.projekakhir.wallet.EthereumNetwork;
 import id.rahmat.projekakhir.wallet.EthereumNetworkRegistry;
@@ -32,24 +37,26 @@ public class NftRepository {
     private static final int NFT_METADATA_LIMIT = 20;
     private static final long ETHERSCAN_LAST_BLOCK = 99_999_999L;
 
-    private final EtherscanApi mainnetApi;
-    private final EtherscanApi sepoliaApi;
+    private static final long METADATA_TIMEOUT_SECONDS = 15L;
+
+    private final EtherscanApi etherscanApi;
     private final AppPreferences appPreferences;
     private final EthereumService ethereumService;
     private final OkHttpClient httpClient;
     private final Gson gson = new Gson();
+    // Token metadata rarely changes, so keep it for the app session.
+    private final Map<String, NftMetadata> metadataCache = new ConcurrentHashMap<>();
 
-    public NftRepository(EtherscanApi mainnetApi, EtherscanApi sepoliaApi,
-                         AppPreferences appPreferences, EthereumService ethereumService) {
-        this.mainnetApi = mainnetApi;
-        this.sepoliaApi = sepoliaApi;
+    public NftRepository(EtherscanApi etherscanApi, AppPreferences appPreferences,
+                         EthereumService ethereumService, OkHttpClient httpClient) {
+        this.etherscanApi = etherscanApi;
         this.appPreferences = appPreferences;
         this.ethereumService = ethereumService;
-        this.httpClient = new OkHttpClient();
+        this.httpClient = httpClient;
     }
 
     public List<NftAsset> loadOwnedNfts(String walletAddress) throws Exception {
-        if (walletAddress == null || walletAddress.isEmpty() || BuildConfig.ETHERSCAN_API_KEY.isEmpty()) {
+        if (walletAddress == null || walletAddress.isEmpty() || !TransactionRepository.hasEtherscanKey()) {
             return Collections.emptyList();
         }
 
@@ -57,18 +64,20 @@ public class NftRepository {
         if (!network.supportsExplorerSync()) {
             return Collections.emptyList();
         }
-        EtherscanApi api = EthereumNetwork.MAINNET.isSameNetwork(network) ? mainnetApi : sepoliaApi;
-        JsonArray erc721Transfers = fetchNftTransfers(api, walletAddress, "tokennfttx");
-        JsonArray erc1155Transfers = fetchNftTransfers(api, walletAddress, "token1155tx");
+        JsonArray erc721Transfers = fetchNftTransfers(network, walletAddress, "tokennfttx");
+        JsonArray erc1155Transfers = fetchNftTransfers(network, walletAddress, "token1155tx");
 
-        List<NftAsset> ownedNfts = new ArrayList<>();
-        ownedNfts.addAll(inferOwnedErc721Nfts(walletAddress, erc721Transfers, network));
-        ownedNfts.addAll(inferOwnedErc1155Nfts(walletAddress, erc1155Transfers, network));
-        return enrichWithMetadata(ownedNfts, network);
+        List<NftAsset> erc721 = inferOwnedErc721Nfts(walletAddress, erc721Transfers, network);
+        List<NftAsset> erc1155 = inferOwnedErc1155Nfts(walletAddress, erc1155Transfers, network);
+        List<NftAsset> ownedNfts = new ArrayList<>(erc721.size() + erc1155.size());
+        ownedNfts.addAll(erc721);
+        ownedNfts.addAll(erc1155);
+        return enrichWithMetadata(ownedNfts, erc721.size(), network);
     }
 
-    private JsonArray fetchNftTransfers(EtherscanApi api, String walletAddress, String action) throws Exception {
-        Response<EtherscanNftTransfersResponse> response = api.getNftTransfers(
+    private JsonArray fetchNftTransfers(EthereumNetwork network, String walletAddress, String action) throws Exception {
+        Response<EtherscanNftTransfersResponse> response = etherscanApi.getNftTransfers(
+                network.getChainId(),
                 "account",
                 action,
                 walletAddress,
@@ -167,16 +176,30 @@ public class NftRepository {
         }
     }
 
-    private List<NftAsset> enrichWithMetadata(List<NftAsset> nfts, EthereumNetwork network) {
-        List<NftAsset> enriched = new ArrayList<>();
+    /**
+     * Loads metadata for the first NFT_METADATA_LIMIT items in parallel (it used
+     * to be one RPC call plus one HTTP request after another, per NFT).
+     * Items before {@code erc1155Start} are ERC-721, the rest ERC-1155.
+     */
+    private List<NftAsset> enrichWithMetadata(List<NftAsset> nfts, int erc1155Start, EthereumNetwork network) {
+        int count = Math.min(nfts.size(), NFT_METADATA_LIMIT);
+        List<CompletableFuture<NftMetadata>> futures = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            NftAsset nft = nfts.get(i);
+            boolean erc1155 = i >= erc1155Start;
+            futures.add(CompletableFuture.supplyAsync(
+                    () -> loadMetadataCached(nft, erc1155, network), AppExecutors.network()));
+        }
+
+        List<NftAsset> enriched = new ArrayList<>(nfts.size());
         for (int i = 0; i < nfts.size(); i++) {
             NftAsset nft = nfts.get(i);
-            if (i >= NFT_METADATA_LIMIT) {
+            if (i >= count) {
                 enriched.add(nft);
                 continue;
             }
 
-            NftMetadata metadata = loadMetadataSafely(nft, network);
+            NftMetadata metadata = awaitMetadata(futures.get(i));
             enriched.add(new NftAsset(
                     isBlank(metadata.name) ? nft.collectionName : metadata.name,
                     nft.tokenSymbol,
@@ -189,9 +212,33 @@ public class NftRepository {
         return enriched;
     }
 
-    private NftMetadata loadMetadataSafely(NftAsset nft, EthereumNetwork network) {
+    private NftMetadata awaitMetadata(CompletableFuture<NftMetadata> future) {
         try {
-            String tokenUri = ethereumService.getErc721TokenUri(nft.contractAddress, nft.tokenId, network);
+            return future.get(METADATA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (Exception ignored) {
+            future.cancel(true);
+            return NftMetadata.empty();
+        }
+    }
+
+    private NftMetadata loadMetadataCached(NftAsset nft, boolean erc1155, EthereumNetwork network) {
+        String key = network.getChainId() + ":" + nft.contractAddress.toLowerCase(Locale.US) + ":" + nft.tokenId;
+        NftMetadata cached = metadataCache.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        NftMetadata metadata = loadMetadataSafely(nft, erc1155, network);
+        if (!metadata.isEmpty()) {
+            metadataCache.put(key, metadata);
+        }
+        return metadata;
+    }
+
+    private NftMetadata loadMetadataSafely(NftAsset nft, boolean erc1155, EthereumNetwork network) {
+        try {
+            String tokenUri = erc1155
+                    ? ethereumService.getErc1155Uri(nft.contractAddress, nft.tokenId, network)
+                    : ethereumService.getErc721TokenUri(nft.contractAddress, nft.tokenId, network);
             String metadataUrl = normalizeTokenUri(tokenUri);
             if (isBlank(metadataUrl) || !metadataUrl.startsWith("http")) {
                 return NftMetadata.empty();
@@ -263,6 +310,10 @@ public class NftRepository {
 
         static NftMetadata empty() {
             return new NftMetadata("", "");
+        }
+
+        boolean isEmpty() {
+            return (name == null || name.isEmpty()) && (imageUrl == null || imageUrl.isEmpty());
         }
     }
 

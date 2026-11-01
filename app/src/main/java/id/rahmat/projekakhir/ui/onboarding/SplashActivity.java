@@ -20,6 +20,9 @@ import id.rahmat.projekakhir.utils.WindowInsetsHelper;
 
 public class SplashActivity extends BaseActivity {
 
+    /** Long enough for the 720 ms entrance animation to finish, no longer. */
+    private static final long SPLASH_DURATION_MS = 1200L;
+
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final List<Animator> runningAnimators = new ArrayList<>();
     private ActivitySplashBinding binding;
@@ -32,7 +35,7 @@ public class SplashActivity extends BaseActivity {
         WindowInsetsHelper.applySystemBarPadding(binding.splashRoot, true, true);
 
         playEntranceAnimation();
-        handler.postDelayed(this::openNextScreen, 2400L);
+        handler.postDelayed(this::openNextScreen, SPLASH_DURATION_MS);
     }
 
     private void playEntranceAnimation() {

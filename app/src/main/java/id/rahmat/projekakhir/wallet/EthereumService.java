@@ -13,6 +13,7 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.Transfer;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
@@ -28,16 +29,26 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import id.rahmat.projekakhir.BuildConfig;
+import okhttp3.OkHttpClient;
 
 public class EthereumService {
 
-    private final Map<String, Web3j> clients = new HashMap<>();
     private static final BigInteger DEFAULT_CONTRACT_GAS_LIMIT = BigInteger.valueOf(350_000L);
+    private static final long RECEIPT_POLL_INTERVAL_MS = 3_000L;
+    private static final int RECEIPT_POLL_ATTEMPTS = 40;
+
+    // Keyed by RPC URL, so editing a custom network's RPC gets a fresh client.
+    private final Map<String, Web3j> clients = new ConcurrentHashMap<>();
+    private final OkHttpClient httpClient;
+
+    public EthereumService(OkHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     public BigDecimal getBalance(String address, EthereumNetwork network) throws IOException {
         BigInteger wei = getClient(network)
@@ -65,7 +76,11 @@ public class EthereumService {
 
     public String sendNativeTransfer(Credentials credentials, String to, BigDecimal amountEth,
                                      EthereumNetwork network) throws Exception {
-        return Transfer.sendFunds(getClient(network), credentials, to, amountEth, Convert.Unit.ETHER)
+        // Sign with the chain ID (EIP-155). Transfer.sendFunds() without a
+        // transaction manager signs without it, and most RPC nodes reject that.
+        Web3j web3j = getClient(network);
+        return new Transfer(web3j, createTransactionManager(web3j, credentials, network))
+                .sendFunds(to, amountEth, Convert.Unit.ETHER)
                 .send()
                 .getTransactionHash();
     }
@@ -135,6 +150,25 @@ public class EthereumService {
             return "";
         }
         return String.valueOf(outputs.get(0).getValue());
+    }
+
+    /** ERC-1155 metadata URI; the standard puts "{id}" in it as 64 hex chars. */
+    public String getErc1155Uri(String contractAddress, String tokenId, EthereumNetwork network) throws IOException {
+        BigInteger id = new BigInteger(tokenId);
+        Function function = new Function(
+                "uri",
+                Arrays.asList(new Uint256(id)),
+                Arrays.asList(new TypeReference<Utf8String>() {})
+        );
+        String data = FunctionEncoder.encode(function);
+        Transaction transaction = Transaction.createEthCallTransaction(null, contractAddress, data);
+        EthCall response = getClient(network).ethCall(transaction, DefaultBlockParameterName.LATEST).send();
+        List<Type> outputs = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
+        if (outputs == null || outputs.isEmpty()) {
+            return "";
+        }
+        String hexId = Numeric.toHexStringNoPrefixZeroPadded(id, 64);
+        return String.valueOf(outputs.get(0).getValue()).replace("{id}", hexId);
     }
 
     public BigDecimal quoteMatsToEth(BigDecimal matsAmount, EthereumNetwork network) throws IOException {
@@ -252,13 +286,14 @@ public class EthereumService {
         String data = FunctionEncoder.encode(function);
         BigInteger gasPrice = web3j.ethGasPrice().send().getGasPrice();
         BigInteger gasLimit = estimateGasLimit(credentials.getAddress(), contractAddress, data, value, network);
-        RawTransactionManager transactionManager = new RawTransactionManager(web3j, credentials, network.getChainId());
+        RawTransactionManager transactionManager = createTransactionManager(web3j, credentials, network);
         EthSendTransaction response = transactionManager.sendTransaction(gasPrice, gasLimit, contractAddress, data, value);
         if (response.hasError()) {
             throw new IllegalStateException(response.getError().getMessage());
         }
         String transactionHash = response.getTransactionHash();
-        TransactionReceipt receipt = new PollingTransactionReceiptProcessor(web3j, 3_000L, 40)
+        TransactionReceipt receipt = new PollingTransactionReceiptProcessor(
+                web3j, RECEIPT_POLL_INTERVAL_MS, RECEIPT_POLL_ATTEMPTS)
                 .waitForTransactionReceipt(transactionHash);
         if (!receipt.isStatusOK()) {
             throw new IllegalStateException("Transaction reverted: " + transactionHash);
@@ -276,13 +311,19 @@ public class EthereumService {
         return estimateGas.getAmountUsed().multiply(BigInteger.valueOf(12)).divide(BigInteger.TEN);
     }
 
+    private RawTransactionManager createTransactionManager(Web3j web3j, Credentials credentials,
+                                                           EthereumNetwork network) {
+        return new RawTransactionManager(
+                web3j,
+                credentials,
+                network.getChainId(),
+                new PollingTransactionReceiptProcessor(web3j, RECEIPT_POLL_INTERVAL_MS, RECEIPT_POLL_ATTEMPTS)
+        );
+    }
+
     private Web3j getClient(EthereumNetwork network) {
-        Web3j existing = clients.get(network.getKey());
-        if (existing != null) {
-            return existing;
-        }
-        Web3j client = Web3j.build(new HttpService(network.getRpcUrl()));
-        clients.put(network.getKey(), client);
-        return client;
+        // Shares the app's OkHttpClient (one connection pool for every chain).
+        return clients.computeIfAbsent(network.getRpcUrl(),
+                rpcUrl -> Web3j.build(new HttpService(rpcUrl, httpClient)));
     }
 }

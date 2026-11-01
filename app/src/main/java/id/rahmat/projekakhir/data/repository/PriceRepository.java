@@ -2,14 +2,19 @@ package id.rahmat.projekakhir.data.repository;
 
 import com.github.mikephil.charting.data.CandleEntry;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import id.rahmat.projekakhir.data.remote.CoinGeckoApi;
 import id.rahmat.projekakhir.wallet.EthereumNetwork;
@@ -18,6 +23,8 @@ import retrofit2.Response;
 public class PriceRepository {
 
     private static final BigDecimal USD_TO_IDR_FALLBACK = new BigDecimal("15500");
+    /** Prices younger than this are served from memory instead of the network. */
+    private static final long PRICE_TTL_MS = 60_000L;
 
     public static class PriceSnapshot {
         public final BigDecimal usd;
@@ -30,8 +37,10 @@ public class PriceRepository {
     }
 
     private final CoinGeckoApi coinGeckoApi;
-    private final Map<String, PriceSnapshot> lastSnapshots = new HashMap<>();
-    private final Map<String, List<CandleEntry>> chartCache = new HashMap<>();
+    // Used from several background threads at once.
+    private final Map<String, PriceSnapshot> lastSnapshots = new ConcurrentHashMap<>();
+    private final Map<String, Long> snapshotTimes = new ConcurrentHashMap<>();
+    private final Map<String, List<CandleEntry>> chartCache = new ConcurrentHashMap<>();
 
     public PriceRepository(CoinGeckoApi coinGeckoApi) {
         this.coinGeckoApi = coinGeckoApi;
@@ -46,30 +55,72 @@ public class PriceRepository {
     }
 
     public PriceSnapshot getLatestPrice(String assetId) throws IOException {
-        PriceSnapshot lastSnapshot = getLastSnapshot(assetId);
+        if (!isFresh(assetId)) {
+            fetchPrices(Collections.singleton(assetId));
+        }
+        return getLastSnapshot(assetId);
+    }
+
+    /**
+     * Fetches every stale price in one CoinGecko request, so a screen that shows
+     * many coins makes one call instead of one per coin (the free API is
+     * rate-limited). Later getLatestPrice() calls are then served from memory.
+     */
+    public void prefetchPrices(Collection<String> assetIds) {
+        Set<String> stale = new LinkedHashSet<>();
+        for (String assetId : assetIds) {
+            if (assetId != null && !assetId.trim().isEmpty() && !isFresh(assetId)) {
+                stale.add(assetId.trim());
+            }
+        }
+        if (!stale.isEmpty()) {
+            fetchPrices(stale);
+        }
+    }
+
+    static String joinIds(Collection<String> assetIds) {
+        StringBuilder joined = new StringBuilder();
+        for (String assetId : assetIds) {
+            if (joined.length() > 0) {
+                joined.append(',');
+            }
+            joined.append(assetId);
+        }
+        return joined.toString();
+    }
+
+    private boolean isFresh(String assetId) {
+        Long fetchedAt = snapshotTimes.get(assetId);
+        return fetchedAt != null && System.currentTimeMillis() - fetchedAt < PRICE_TTL_MS;
+    }
+
+    private void fetchPrices(Collection<String> assetIds) {
         Response<JsonObject> response;
         try {
-            response = coinGeckoApi.getSimplePrice(assetId, "usd,idr").execute();
+            response = coinGeckoApi.getSimplePrice(joinIds(assetIds), "usd,idr").execute();
         } catch (IOException exception) {
-            return lastSnapshot;
+            return;
         }
         if (response == null || !response.isSuccessful() || response.body() == null) {
-            return lastSnapshot;
+            return;
         }
-        JsonObject asset = response.body().getAsJsonObject(assetId);
-        if (asset == null || asset.get("usd") == null) {
-            return lastSnapshot;
+        long now = System.currentTimeMillis();
+        for (String assetId : assetIds) {
+            JsonElement element = response.body().get(assetId);
+            if (element == null || !element.isJsonObject()) {
+                continue;
+            }
+            JsonObject asset = element.getAsJsonObject();
+            if (asset.get("usd") == null) {
+                continue;
+            }
+            BigDecimal usd = asset.get("usd").getAsBigDecimal();
+            BigDecimal idr = asset.get("idr") == null
+                    ? usd.multiply(USD_TO_IDR_FALLBACK)
+                    : asset.get("idr").getAsBigDecimal();
+            lastSnapshots.put(assetId, new PriceSnapshot(usd, idr));
+            snapshotTimes.put(assetId, now);
         }
-        BigDecimal usd = asset.get("usd").getAsBigDecimal();
-        BigDecimal idr = asset.get("idr") == null
-                ? usd.multiply(USD_TO_IDR_FALLBACK)
-                : asset.get("idr").getAsBigDecimal();
-        PriceSnapshot snapshot = new PriceSnapshot(
-                usd,
-                idr
-        );
-        lastSnapshots.put(assetId, snapshot);
-        return snapshot;
     }
 
     public List<CandleEntry> getSevenDayCandleEntries(EthereumNetwork network) throws IOException {
