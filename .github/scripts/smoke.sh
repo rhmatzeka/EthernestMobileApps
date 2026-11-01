@@ -15,6 +15,11 @@ adb install -r -g app/build/outputs/apk/debug/app-debug.apk
 # launcher, so turn it off and hide system crash/ANR dialogs.
 adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher >/dev/null 2>&1 || true
 adb shell settings put global hide_error_dialogs 1 || true
+# Keep the screen on and unlocked, otherwise taps are ignored.
+adb shell svc power stayon true || true
+adb shell input keyevent KEYCODE_WAKEUP || true
+adb shell wm dismiss-keyguard || true
+adb shell input keyevent 82 || true
 sleep 5
 adb logcat -c || true
 
@@ -103,9 +108,10 @@ dump; shot "7-swap"; texts
 step "after tour alive" alive tour
 
 adb logcat -d > "$OUT/logcat.txt" || true
-if grep -q "FATAL EXCEPTION" "$OUT/logcat.txt"; then
+# Only crashes of this app count (the emulator's SystemUI sometimes crashes too).
+if grep -A1 "FATAL EXCEPTION" "$OUT/logcat.txt" | grep -q "Process: $PKG"; then
   echo "::error::the app crashed"
-  grep -A 30 "FATAL EXCEPTION" "$OUT/logcat.txt" | head -80
+  grep -A 40 "FATAL EXCEPTION" "$OUT/logcat.txt" | grep -A 40 "Process: $PKG" | head -80
   failed=1
 fi
 exit "$failed"
