@@ -85,6 +85,9 @@ adb shell input keyevent 111   # ESC: close the keyboard
 sleep 1
 step "pin: continue"           tap id:buttonContinue 4
 step "home: opened"            wait_for id:menu_home 30
+if [ "$failed" -ne 0 ]; then
+  dump; shot "0-stuck"; texts
+else
 # Give the balance and price requests time to finish.
 sleep 20
 dump; shot "1-home"; texts
@@ -106,6 +109,7 @@ adb shell input keyevent 4; sleep 2
 step "swap screen" tap id:buttonQuickSwap 6
 dump; shot "7-swap"; texts
 step "after tour alive" alive tour
+fi
 
 adb logcat -d > "$OUT/logcat.txt" || true
 # Only crashes of this app count (the emulator's SystemUI sometimes crashes too).

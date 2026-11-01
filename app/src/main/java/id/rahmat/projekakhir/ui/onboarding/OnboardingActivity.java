@@ -72,8 +72,18 @@ public class OnboardingActivity extends BaseActivity {
 
     private void updateActionState(int position) {
         boolean isLastPage = position == slides.size() - 1;
-        binding.buttonNext.setVisibility(isLastPage ? View.GONE : View.VISIBLE);
-        binding.walletActionContainer.setVisibility(isLastPage ? View.VISIBLE : View.GONE);
+        // ViewPager2 can report the page change while it is laying out (e.g. when
+        // animations are off), and a visibility change made then may never get
+        // a layout pass: the Next button vanished but the wallet buttons never
+        // appeared, leaving the user stuck. Apply it on the next frame instead.
+        binding.onboardingRoot.post(() -> {
+            if (binding == null) {
+                return;
+            }
+            binding.buttonNext.setVisibility(isLastPage ? View.GONE : View.VISIBLE);
+            binding.walletActionContainer.setVisibility(isLastPage ? View.VISIBLE : View.GONE);
+            binding.onboardingRoot.requestLayout();
+        });
     }
 
     private void openPinSetup(@NonNull String mode) {
