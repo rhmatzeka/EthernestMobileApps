@@ -44,6 +44,23 @@ tap() {
   adb shell input tap $(find_node "$1")
   sleep "${2:-2}"
 }
+# Tap a button that leaves the screen, retrying while it is still shown
+# (a tap can land while the layout is still settling).
+tap_away() {
+  wait_for "$1" || return 1
+  sleep 1
+  for _ in 1 2 3 4; do
+    dump
+    local xy
+    xy=$(find_node "$1")
+    [ -z "$xy" ] && return 0
+    # shellcheck disable=SC2086
+    adb shell input tap $xy
+    sleep "${2:-3}"
+  done
+  dump
+  [ -z "$(find_node "$1")" ] || { echo "::error::$1 did not react"; shot "stuck-$1"; return 1; }
+}
 shot() {
   adb exec-out screencap -p > "$OUT/$1.png" || true
   cp /tmp/ui.xml "$OUT/$1.xml" 2>/dev/null || true
@@ -85,13 +102,13 @@ step() {
 
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
 step "onboarding: skip"        tap id:textSkip
-step "onboarding: create"      tap id:buttonCreateWallet
+step "onboarding: create"      tap_away id:buttonCreateWallet
 step "pin: first entry"        tap id:inputPin 1
 adb shell input text 123456
 step "pin: confirm entry"      tap id:inputConfirmPin 1
 adb shell input text 123456
 hide_keyboard
-step "pin: continue"           tap id:buttonContinue 4
+step "pin: continue"           tap_away id:buttonContinue 5
 step "home: opened"            wait_for id:menu_home 30
 if [ "$failed" -ne 0 ]; then
   dump; shot "0-stuck"; texts
