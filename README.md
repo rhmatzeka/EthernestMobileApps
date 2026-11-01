@@ -2,6 +2,14 @@
 
 A multi-chain crypto wallet app for Android. You can hold ETH and tokens on many EVM networks, send and receive with QR codes, swap tokens on testnet, view your NFTs, and **buy ETH with Indonesian payment methods** through Midtrans.
 
+## Download
+
+[**Download the latest APK**](https://github.com/rhmatzeka/EthernestMobileApps/releases/latest/download/Ethernest.apk) (Android 7.0 or newer).
+
+Open the file on your phone and allow "Install unknown apps" if Android asks. Every push to `main` builds a new signed APK and publishes it to the [`apk-terbaru` release](https://github.com/rhmatzeka/EthernestMobileApps/releases/tag/apk-terbaru), so installing a newer download updates the app in place.
+
+The published APK uses free public RPC endpoints (publicnode.com) and has no API keys inside, so the AI advisor answers in offline mode and NFT/transaction history from Etherscan is off. Build it yourself with your own `local.properties` to turn those on.
+
 ## Features
 
 - **Create or import a wallet**, protected by a PIN (ready for fingerprint login)

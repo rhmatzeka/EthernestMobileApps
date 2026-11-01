@@ -22,3 +22,7 @@ smart-contracts/cache
 smart-contracts/artifacts
 smart-contracts/.env
 smart-contracts/*.log
+# Release signing key (kept out of git; CI restores it from secrets)
+*.p12
+*.keystore
+.env.keystore

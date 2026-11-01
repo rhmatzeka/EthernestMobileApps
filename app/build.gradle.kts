@@ -11,14 +11,37 @@ val localProperties = Properties().apply {
     }
 }
 
+// A blank value in local.properties falls back to the default, so a key left
+// empty (e.g. "BSC_RPC_URL=") still gets a working public endpoint.
 fun localProperty(name: String, defaultValue: String = ""): String {
-    return localProperties.getProperty(name, defaultValue)
+    return localProperties.getProperty(name)?.trim()?.takeIf { it.isNotEmpty() } ?: defaultValue
 }
 
 fun localIntProperty(name: String, defaultValue: Int = 18): String {
     return localProperties.getProperty(name)?.trim()?.toIntOrNull()?.toString()
         ?: defaultValue.toString()
 }
+
+// Free public endpoints used when no private RPC is configured, so the APK
+// published by CI works out of the box. Set your own URL in local.properties
+// (or INFURA_PROJECT_ID for Ethereum/Sepolia) for better rate limits.
+val publicRpcUrls = mapOf(
+    "MAINNET" to "https://ethereum-rpc.publicnode.com",
+    "SEPOLIA" to "https://ethereum-sepolia-rpc.publicnode.com",
+    "BSC" to "https://bsc-rpc.publicnode.com",
+    "AVALANCHE" to "https://avalanche-c-chain-rpc.publicnode.com",
+    "POLYGON" to "https://polygon-bor-rpc.publicnode.com",
+    "ARBITRUM" to "https://arbitrum-one-rpc.publicnode.com",
+    "OPTIMISM" to "https://optimism-rpc.publicnode.com",
+    "BASE" to "https://base-rpc.publicnode.com",
+    "FANTOM" to "https://rpcapi.fantom.network"
+)
+
+// CI sets ETHERNEST_BUILD to the workflow run number so every published APK
+// is a newer version than the last one and installs as an update.
+val buildNumber = (System.getenv("ETHERNEST_BUILD") ?: "").toIntOrNull() ?: 1
+val releaseKeystore = rootProject.file("ethernest.p12")
+val releaseKeystorePassword = System.getenv("ETHERNEST_KEYSTORE_PASSWORD") ?: ""
 
 val presetSwapTokenDecimals = mapOf(
     "USDT" to 6,
@@ -42,8 +65,8 @@ android {
         applicationId = "id.rahmat.projekakhir"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = buildNumber
+        versionName = "1.0.$buildNumber"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -55,13 +78,9 @@ android {
         buildConfigField("String", "ETHERSCAN_MAINNET_BASE_URL", "\"https://api.etherscan.io/api/\"")
         buildConfigField("String", "ETHERSCAN_SEPOLIA_BASE_URL", "\"https://api-sepolia.etherscan.io/api/\"")
         buildConfigField("String", "INFURA_PROJECT_ID", "\"${localProperty("INFURA_PROJECT_ID")}\"")
-        buildConfigField("String", "BSC_RPC_URL", "\"${localProperty("BSC_RPC_URL")}\"")
-        buildConfigField("String", "AVALANCHE_RPC_URL", "\"${localProperty("AVALANCHE_RPC_URL")}\"")
-        buildConfigField("String", "POLYGON_RPC_URL", "\"${localProperty("POLYGON_RPC_URL")}\"")
-        buildConfigField("String", "ARBITRUM_RPC_URL", "\"${localProperty("ARBITRUM_RPC_URL")}\"")
-        buildConfigField("String", "OPTIMISM_RPC_URL", "\"${localProperty("OPTIMISM_RPC_URL")}\"")
-        buildConfigField("String", "BASE_RPC_URL", "\"${localProperty("BASE_RPC_URL")}\"")
-        buildConfigField("String", "FANTOM_RPC_URL", "\"${localProperty("FANTOM_RPC_URL")}\"")
+        for ((network, publicUrl) in publicRpcUrls) {
+            buildConfigField("String", "${network}_RPC_URL", "\"${localProperty("${network}_RPC_URL", publicUrl)}\"")
+        }
         buildConfigField("String", "ETHERSCAN_API_KEY", "\"${localProperty("ETHERSCAN_API_KEY")}\"")
         buildConfigField("String", "OPENAI_API_KEY", "\"${localProperty("OPENAI_API_KEY")}\"")
         buildConfigField("String", "OPENAI_MODEL", "\"${localProperty("OPENAI_MODEL", "gpt-4.1-mini")}\"")
@@ -85,8 +104,22 @@ android {
         buildConfigField("String", "BUY_BACKEND_BASE_URL", "\"${localProperty("BUY_BACKEND_BASE_URL")}\"")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = releaseKeystore
+            storeType = "pkcs12"
+            storePassword = releaseKeystorePassword
+            keyAlias = "ethernest"
+            keyPassword = releaseKeystorePassword
+        }
+    }
+
     buildTypes {
         release {
+            // Without the key (e.g. a local build) the release APK is left unsigned.
+            if (releaseKeystore.exists() && releaseKeystorePassword.isNotEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
