@@ -49,7 +49,8 @@ public class BuyActivity extends BaseActivity {
     private BigDecimal ethPriceIdr = BigDecimal.ZERO;
     private final DecimalFormat idrFormatter = new DecimalFormat("#,###", DecimalFormatSymbols.getInstance(Locale.forLanguageTag("id-ID")));
     private final DecimalFormat ethEstimateFormatter = new DecimalFormat("0.00000000", DecimalFormatSymbols.getInstance(Locale.US));
-    private final OkHttpClient httpClient = new OkHttpClient.Builder()
+    // Derived from the shared client so it reuses the app's connection pool.
+    private final OkHttpClient httpClient = ServiceLocator.getHttpClient().newBuilder()
             .connectTimeout(4, TimeUnit.SECONDS)
             .readTimeout(8, TimeUnit.SECONDS)
             .writeTimeout(8, TimeUnit.SECONDS)
@@ -145,7 +146,11 @@ public class BuyActivity extends BaseActivity {
             } catch (Exception exception) {
                 ethPriceIdr = BigDecimal.ZERO;
             }
-            runOnUiThread(this::renderAmount);
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    renderAmount();
+                }
+            });
         });
     }
 
@@ -203,6 +208,9 @@ public class BuyActivity extends BaseActivity {
 
                 String redirectUrl = createBuyOrder(payload.toString());
                 runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) {
+                        return;
+                    }
                     isCreatingOrder = false;
                     binding.buttonContinue.setEnabled(true);
                     showMessage(getString(R.string.buy_midtrans_opening));
@@ -210,6 +218,9 @@ public class BuyActivity extends BaseActivity {
                 });
             } catch (Exception exception) {
                 runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) {
+                        return;
+                    }
                     isCreatingOrder = false;
                     binding.buttonContinue.setEnabled(true);
                     if (shouldUseFallbackPayment(exception, fallbackPaymentUrl)) {

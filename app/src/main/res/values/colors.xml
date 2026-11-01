@@ -12,11 +12,13 @@
     <color name="mw_surface_glass_stroke">#66748AA6</color>
     <color name="mw_text_primary">#FFFFFF</color>
     <color name="mw_text_secondary">#B8C0CC</color>
+    <color name="mw_text_tertiary">#7C8796</color>
     <color name="mw_success">#3DD598</color>
     <color name="mw_warning">#F5A623</color>
     <color name="mw_error">#FF5C74</color>
     <color name="mw_line_chart">#7DD3FC</color>
     <color name="mw_divider">#55748AA6</color>
+    <color name="mw_stroke_soft">#33748AA6</color>
     <color name="mw_chip_selected">#3338BDF8</color>
     <color name="mw_bottom_nav">#050505</color>
     <color name="mw_qr_surface">#F9FAFB</color>

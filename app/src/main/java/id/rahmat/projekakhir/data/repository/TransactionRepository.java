@@ -2,6 +2,9 @@ package id.rahmat.projekakhir.data.repository;
 
 import androidx.lifecycle.LiveData;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
 import org.web3j.utils.Convert;
 
 import java.math.BigDecimal;
@@ -26,15 +29,14 @@ public class TransactionRepository {
     public static final String DIRECTION_RECEIVED = "received";
 
     private final TransactionDao transactionDao;
-    private final EtherscanApi mainnetApi;
-    private final EtherscanApi sepoliaApi;
+    private final EtherscanApi etherscanApi;
     private final AppPreferences appPreferences;
+    private final Gson gson = new Gson();
 
-    public TransactionRepository(TransactionDao transactionDao, EtherscanApi mainnetApi,
-                                 EtherscanApi sepoliaApi, AppPreferences appPreferences) {
+    public TransactionRepository(TransactionDao transactionDao, EtherscanApi etherscanApi,
+                                 AppPreferences appPreferences) {
         this.transactionDao = transactionDao;
-        this.mainnetApi = mainnetApi;
-        this.sepoliaApi = sepoliaApi;
+        this.etherscanApi = etherscanApi;
         this.appPreferences = appPreferences;
     }
 
@@ -51,7 +53,7 @@ public class TransactionRepository {
     }
 
     public void syncFromEtherscan(String walletAddress) throws Exception {
-        if (walletAddress == null || walletAddress.isEmpty()) {
+        if (walletAddress == null || walletAddress.isEmpty() || !hasEtherscanKey()) {
             return;
         }
 
@@ -59,21 +61,35 @@ public class TransactionRepository {
         if (!network.supportsExplorerSync()) {
             return;
         }
-        EtherscanApi api = EthereumNetwork.MAINNET.isSameNetwork(network) ? mainnetApi : sepoliaApi;
-        Response<EtherscanTransactionsResponse> response = api
-                .getTransactions("account", "txlist", walletAddress, "desc", BuildConfig.ETHERSCAN_API_KEY)
+        Response<EtherscanTransactionsResponse> response = etherscanApi
+                .getTransactions(network.getChainId(), "account", "txlist", walletAddress, "desc",
+                        BuildConfig.ETHERSCAN_API_KEY)
                 .execute();
 
         EtherscanTransactionsResponse body = response.body();
-        if (body == null || body.result == null) {
+        // On errors Etherscan returns a message string instead of an array.
+        if (body == null || body.result == null || !body.result.isJsonArray()) {
             return;
         }
 
         List<TransactionEntity> transactionEntities = new ArrayList<>();
-        for (EtherscanTransactionItem item : body.result) {
-            transactionEntities.add(mapToEntity(walletAddress, item, network));
+        for (JsonElement element : body.result.getAsJsonArray()) {
+            EtherscanTransactionItem item = gson.fromJson(element, EtherscanTransactionItem.class);
+            if (item == null || item.hash == null || item.value == null || item.timeStamp == null) {
+                continue;
+            }
+            try {
+                transactionEntities.add(mapToEntity(walletAddress, item, network));
+            } catch (NumberFormatException ignored) {
+                // Skip a malformed row rather than dropping the whole history.
+            }
         }
         transactionDao.insertAll(transactionEntities);
+    }
+
+    static boolean hasEtherscanKey() {
+        String key = BuildConfig.ETHERSCAN_API_KEY;
+        return key != null && !key.trim().isEmpty() && !key.startsWith("your_");
     }
 
     private TransactionEntity mapToEntity(String walletAddress, EtherscanTransactionItem item, EthereumNetwork network) {

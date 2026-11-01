@@ -227,10 +227,11 @@ public class MarketFragment extends BaseFragment {
             }
             PriceRepository.PriceSnapshot finalPrice = price;
             List<CandleEntry> finalEntries = entries;
-            if (!isAdded()) {
+            android.app.Activity activity = getActivity();
+            if (activity == null) {
                 return;
             }
-            requireActivity().runOnUiThread(() -> {
+            activity.runOnUiThread(() -> {
                 if (binding == null || selectedAssetIndex >= MARKET_ASSETS.length
                         || !MARKET_ASSETS[selectedAssetIndex].assetId.equals(asset.assetId)) {
                     return;

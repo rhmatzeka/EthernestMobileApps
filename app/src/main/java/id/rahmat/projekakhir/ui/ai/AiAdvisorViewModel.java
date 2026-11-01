@@ -157,6 +157,7 @@ public class AiAdvisorViewModel extends AndroidViewModel {
 
     private List<StableAssetSignal> buildStableSignals() {
         List<StableAssetSignal> signals = new ArrayList<>();
+        priceRepository.prefetchPrices(java.util.Arrays.asList("usd-coin", "tether", "dai"));
         signals.add(loadStableSignal("USDC", "USD Coin", "usd-coin"));
         signals.add(loadStableSignal("USDT", "Tether USD", "tether"));
         signals.add(loadStableSignal("DAI", "Dai", "dai"));

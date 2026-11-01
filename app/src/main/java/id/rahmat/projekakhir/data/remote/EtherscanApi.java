@@ -6,17 +6,20 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
+/** Etherscan API V2 (https://docs.etherscan.io/v2-migration). */
 public interface EtherscanApi {
 
     @GET(".")
-    Call<EtherscanTransactionsResponse> getTransactions(@Query("module") String module,
+    Call<EtherscanTransactionsResponse> getTransactions(@Query("chainid") long chainId,
+                                                        @Query("module") String module,
                                                         @Query("action") String action,
                                                         @Query("address") String address,
                                                         @Query("sort") String sort,
                                                         @Query("apikey") String apiKey);
 
     @GET(".")
-    Call<EtherscanNftTransfersResponse> getNftTransfers(@Query("module") String module,
+    Call<EtherscanNftTransfersResponse> getNftTransfers(@Query("chainid") long chainId,
+                                                        @Query("module") String module,
                                                         @Query("action") String action,
                                                         @Query("address") String address,
                                                         @Query("page") int page,

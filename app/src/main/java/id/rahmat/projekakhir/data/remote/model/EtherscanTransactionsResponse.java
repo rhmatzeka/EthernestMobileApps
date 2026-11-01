@@ -1,8 +1,7 @@
 package id.rahmat.projekakhir.data.remote.model;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
 
 public class EtherscanTransactionsResponse {
 
@@ -12,6 +11,7 @@ public class EtherscanTransactionsResponse {
     @SerializedName("message")
     public String message;
 
+    /** An array of transactions, or an error message string when status is "0". */
     @SerializedName("result")
-    public List<EtherscanTransactionItem> result;
+    public JsonElement result;
 }

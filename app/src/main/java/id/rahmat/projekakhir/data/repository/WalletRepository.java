@@ -5,9 +5,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import id.rahmat.projekakhir.BuildConfig;
+import id.rahmat.projekakhir.utils.AddressUtils;
+import id.rahmat.projekakhir.utils.AppExecutors;
 import id.rahmat.projekakhir.utils.FormatUtils;
 import id.rahmat.projekakhir.utils.AppPreferences;
 import id.rahmat.projekakhir.wallet.TokenBalance;
@@ -20,6 +25,7 @@ import id.rahmat.projekakhir.wallet.WalletSnapshot;
 public class WalletRepository {
 
     private static final BigDecimal USD_TO_IDR_FALLBACK = new BigDecimal("15500");
+    private static final long NATIVE_BALANCE_TIMEOUT_MS = 12_000L;
     private final WalletManager walletManager;
     private final EthereumService ethereumService;
     private final PriceRepository priceRepository;
@@ -125,39 +131,66 @@ public class WalletRepository {
     }
 
     private List<TokenBalance> loadNativeAssetBalances(String walletAddress) {
-        List<TokenBalance> balances = new ArrayList<>();
         List<EthereumNetwork> orderedNetworks = new ArrayList<>();
         EthereumNetwork selectedNetwork = getSelectedNetwork();
         orderedNetworks.add(selectedNetwork);
         for (EthereumNetwork network : EthereumNetworkRegistry.getAll(appPreferences)) {
-            if (selectedNetwork.isSameNetwork(network)) {
-                continue;
+            if (!selectedNetwork.isSameNetwork(network)) {
+                orderedNetworks.add(network);
             }
-            orderedNetworks.add(network);
         }
 
+        // One CoinGecko request for every chain's native coin.
+        List<String> assetIds = new ArrayList<>();
         for (EthereumNetwork network : orderedNetworks) {
-            if (!network.hasRpcUrl()) {
-                continue;
+            assetIds.add(network.getCoinGeckoAssetId());
+        }
+        priceRepository.prefetchPrices(assetIds);
+
+        // Ask every chain at once instead of one after another: the slowest RPC
+        // now sets the wait, not the sum of all of them.
+        List<CompletableFuture<TokenBalance>> futures = new ArrayList<>();
+        for (EthereumNetwork network : orderedNetworks) {
+            if (network.hasRpcUrl()) {
+                futures.add(CompletableFuture.supplyAsync(
+                        () -> loadNativeAssetBalance(walletAddress, network), AppExecutors.network()));
             }
+        }
+
+        List<TokenBalance> balances = new ArrayList<>();
+        long deadline = System.currentTimeMillis() + NATIVE_BALANCE_TIMEOUT_MS;
+        for (CompletableFuture<TokenBalance> future : futures) {
             try {
-                BigDecimal nativeBalance = ethereumService.getBalance(walletAddress, network);
-                PriceRepository.PriceSnapshot priceSnapshot = priceRepository.getLatestPrice(network);
-                balances.add(new TokenBalance(
-                        network.getNativeAssetName(),
-                        network.getDisplayName(),
-                        network.getNativeSymbol(),
-                        nativeBalance,
-                        null,
-                        priceSnapshot.idr,
-                        priceSnapshot.usd,
-                        true
-                ));
+                long remaining = Math.max(0L, deadline - System.currentTimeMillis());
+                TokenBalance balance = future.get(remaining, TimeUnit.MILLISECONDS);
+                if (balance != null) {
+                    balances.add(balance);
+                }
             } catch (Exception ignored) {
-                // Skip broken RPCs so one bad endpoint does not block the full home portfolio.
+                // Skip broken or slow RPCs so one bad endpoint does not block the full home portfolio.
+                future.cancel(true);
             }
         }
         return balances;
+    }
+
+    private TokenBalance loadNativeAssetBalance(String walletAddress, EthereumNetwork network) {
+        try {
+            BigDecimal nativeBalance = ethereumService.getBalance(walletAddress, network);
+            PriceRepository.PriceSnapshot priceSnapshot = priceRepository.getLatestPrice(network);
+            return new TokenBalance(
+                    network.getNativeAssetName(),
+                    network.getDisplayName(),
+                    network.getNativeSymbol(),
+                    nativeBalance,
+                    null,
+                    priceSnapshot.idr,
+                    priceSnapshot.usd,
+                    true
+            );
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private List<TokenBalance> loadTrackedTokenBalances(String walletAddress, EthereumNetwork network) throws Exception {
@@ -168,13 +201,18 @@ public class WalletRepository {
         PriceRepository.PriceSnapshot nativePrice = priceRepository.getLatestPrice(network);
         Set<String> addedAddresses = new LinkedHashSet<>();
 
+        List<CompletableFuture<TokenBalance>> futures = new ArrayList<>();
         for (TrackedSwapToken token : getTrackedSwapTokens()) {
-            if (!hasAddress(token.tokenAddress) || addedAddresses.contains(token.tokenAddress.toLowerCase())) {
+            if (!hasAddress(token.tokenAddress) || !addedAddresses.add(token.tokenAddress.toLowerCase(Locale.US))) {
                 continue;
             }
-
-            tokens.add(loadTrackedTokenBalance(walletAddress, network, nativePrice, token));
-            addedAddresses.add(token.tokenAddress.toLowerCase());
+            futures.add(CompletableFuture.supplyAsync(
+                    () -> loadTrackedTokenBalance(walletAddress, network, nativePrice, token),
+                    AppExecutors.network()));
+        }
+        // loadTrackedTokenBalance never throws: a failed token comes back with a zero balance.
+        for (CompletableFuture<TokenBalance> future : futures) {
+            tokens.add(future.join());
         }
 
         return tokens;
@@ -426,8 +464,8 @@ public class WalletRepository {
         tokens.add(new TrackedSwapToken(safeName, safeSymbol, tokenAddress, poolAddress, Math.max(decimals, 0), null));
     }
 
-    private boolean hasAddress(String value) {
-        return value != null && !value.trim().isEmpty();
+    private static boolean hasAddress(String value) {
+        return AddressUtils.isEvmAddress(value);
     }
 
     private String safeString(String value) {

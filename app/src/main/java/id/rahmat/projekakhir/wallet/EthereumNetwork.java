@@ -17,7 +17,7 @@ public class EthereumNetwork {
             "ETH",
             "ethereum",
             1L,
-            buildInfuraRpcUrl("mainnet"),
+            buildInfuraRpcUrl("mainnet", BuildConfig.MAINNET_RPC_URL),
             "https://etherscan.io/tx/",
             true
     );
@@ -29,7 +29,7 @@ public class EthereumNetwork {
             "ETH",
             "ethereum",
             11155111L,
-            buildInfuraRpcUrl("sepolia"),
+            buildInfuraRpcUrl("sepolia", BuildConfig.SEPOLIA_RPC_URL),
             "https://sepolia.etherscan.io/tx/",
             true
     );
@@ -287,10 +287,10 @@ public class EthereumNetwork {
         return Objects.hash(key.toLowerCase(Locale.US));
     }
 
-    private static String buildInfuraRpcUrl(String networkKey) {
+    private static String buildInfuraRpcUrl(String networkKey, String fallbackRpcUrl) {
         String projectId = trim(BuildConfig.INFURA_PROJECT_ID);
-        if (projectId.isEmpty()) {
-            return "";
+        if (projectId.isEmpty() || projectId.startsWith("your_")) {
+            return trim(fallbackRpcUrl);
         }
         return "https://" + networkKey + ".infura.io/v3/" + projectId;
     }
