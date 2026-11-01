@@ -75,8 +75,8 @@ android {
 
         buildConfigField("String", "DEFAULT_ETH_NETWORK", "\"${localProperty("DEFAULT_ETH_NETWORK", "sepolia")}\"")
         buildConfigField("String", "COINGECKO_BASE_URL", "\"https://api.coingecko.com/api/v3/\"")
-        buildConfigField("String", "ETHERSCAN_MAINNET_BASE_URL", "\"https://api.etherscan.io/api/\"")
-        buildConfigField("String", "ETHERSCAN_SEPOLIA_BASE_URL", "\"https://api-sepolia.etherscan.io/api/\"")
+        // Etherscan API V2: one endpoint for every chain, picked with ?chainid=.
+        buildConfigField("String", "ETHERSCAN_BASE_URL", "\"https://api.etherscan.io/v2/api/\"")
         buildConfigField("String", "INFURA_PROJECT_ID", "\"${localProperty("INFURA_PROJECT_ID")}\"")
         for ((network, publicUrl) in publicRpcUrls) {
             buildConfigField("String", "${network}_RPC_URL", "\"${localProperty("${network}_RPC_URL", publicUrl)}\"")

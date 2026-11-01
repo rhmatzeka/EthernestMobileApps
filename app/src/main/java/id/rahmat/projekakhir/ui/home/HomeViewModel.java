@@ -13,6 +13,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import id.rahmat.projekakhir.data.repository.PriceRepository;
 import id.rahmat.projekakhir.data.repository.NftRepository;
@@ -27,6 +30,9 @@ import id.rahmat.projekakhir.wallet.WalletSnapshot;
 import id.rahmat.projekakhir.wallet.EthereumNetwork;
 
 public class HomeViewModel extends AndroidViewModel {
+
+    /** How long a loaded home screen counts as fresh when the user comes back to it. */
+    private static final long AUTO_REFRESH_INTERVAL_MS = 30_000L;
 
     public static class ChartItem {
         public final String assetId;
@@ -118,6 +124,9 @@ public class HomeViewModel extends AndroidViewModel {
     private final NftRepository nftRepository;
     private final MutableLiveData<HomeUiState> uiState = new MutableLiveData<>();
     private final MutableLiveData<ChartItem> chartState = new MutableLiveData<>();
+    private final AtomicBoolean loading = new AtomicBoolean(false);
+    private volatile String lastLoadedKey = "";
+    private volatile long lastLoadedAt;
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -134,56 +143,116 @@ public class HomeViewModel extends AndroidViewModel {
         return chartState;
     }
 
+    /** Refresh when coming back to the screen: skipped if the data is still fresh. */
     public void refresh() {
+        refresh(false);
+    }
+
+    /**
+     * @param force reload even if the last load was moments ago (pull to refresh).
+     */
+    public void refresh(boolean force) {
+        String stateKey = buildStateKey();
+        boolean fresh = stateKey.equals(lastLoadedKey)
+                && System.currentTimeMillis() - lastLoadedAt < AUTO_REFRESH_INTERVAL_MS;
+        if ((!force && fresh) || !loading.compareAndSet(false, true)) {
+            // Fresh enough, or a load is already running and will post its result.
+            return;
+        }
         AppExecutors.io().execute(() -> {
             try {
-                WalletSnapshot snapshot = walletRepository.loadWalletSnapshot();
-                List<ChartItem> chartItems = buildChartItems();
-                List<TokenBalance> tokenBalances = walletRepository.loadTokenBalances();
-                List<TokenItem> tokenItems = buildAssetList(snapshot, tokenBalances);
-                List<NftItem> nftItems = buildNftList(safeLoadNfts(snapshot.getAddress()));
-
-                BigDecimal totalIdr = calculateTotalValue(tokenBalances, snapshot, true);
-                BigDecimal totalUsd = calculateTotalValue(tokenBalances, snapshot, false);
-
-                uiState.postValue(new HomeUiState(
-                        snapshot.getAddress(),
-                        shortenAddress(snapshot.getAddress()),
-                        snapshot.getNetworkName(),
-                        snapshot.getNativeAssetName(),
-                        snapshot.getNativeAssetSymbol(),
-                        FormatUtils.formatUsd(totalUsd),
-                        FormatUtils.formatIdr(totalIdr),
-                        FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
-                        getApplication().getString(R.string.native_chart_title, snapshot.getNativeAssetSymbol()),
-                        getApplication().getString(R.string.native_chart_subtitle, snapshot.getNativeAssetSymbol()),
-                        tokenItems,
-                        nftItems,
-                        new ArrayList<>(),
-                        chartItems,
-                        null
-                ));
-            } catch (Exception exception) {
-                String networkName = walletRepository.getSelectedNetwork().getDisplayName();
-                String nativeAssetName = walletRepository.getSelectedNetwork().getNativeAssetName();
-                String nativeAssetSymbol = walletRepository.getSelectedNetwork().getNativeSymbol();
-                uiState.postValue(new HomeUiState(
-                        "", "", networkName,
-                        nativeAssetName,
-                        nativeAssetSymbol,
-                        FormatUtils.formatToken(BigDecimal.ZERO, nativeAssetSymbol),
-                        FormatUtils.formatIdr(BigDecimal.ZERO),
-                        FormatUtils.formatUsd(BigDecimal.ZERO),
-                        getApplication().getString(R.string.native_chart_title, nativeAssetSymbol),
-                        getApplication().getString(R.string.native_chart_subtitle, nativeAssetSymbol),
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        new ArrayList<>(),
-                        Collections.emptyList(),
-                        exception.getMessage()
-                ));
+                loadHome(stateKey);
+            } finally {
+                loading.set(false);
             }
         });
+    }
+
+    /** Wallet, network or network list changed: the cached screen is no longer valid. */
+    private String buildStateKey() {
+        return walletRepository.getWalletAddress() + "|"
+                + walletRepository.getSelectedNetwork().getKey() + "|"
+                + walletRepository.getAvailableNetworks().size();
+    }
+
+    private void loadHome(String stateKey) {
+        try {
+            String walletAddress = walletRepository.getWalletAddress();
+            // The three loads hit different services, so run them side by side.
+            CompletableFuture<WalletSnapshot> snapshotFuture = supplyAsync(walletRepository::loadWalletSnapshot);
+            CompletableFuture<List<NftAsset>> nftFuture = CompletableFuture.supplyAsync(
+                    () -> safeLoadNfts(walletAddress), AppExecutors.network());
+            List<TokenBalance> tokenBalances = walletRepository.loadTokenBalances();
+            WalletSnapshot snapshot = joinUnwrapped(snapshotFuture);
+            List<ChartItem> chartItems = buildChartItems();
+            List<TokenItem> tokenItems = buildAssetList(snapshot, tokenBalances);
+            List<NftItem> nftItems = buildNftList(nftFuture.join());
+
+            BigDecimal totalIdr = calculateTotalValue(tokenBalances, snapshot, true);
+            BigDecimal totalUsd = calculateTotalValue(tokenBalances, snapshot, false);
+
+            uiState.postValue(new HomeUiState(
+                    snapshot.getAddress(),
+                    shortenAddress(snapshot.getAddress()),
+                    snapshot.getNetworkName(),
+                    snapshot.getNativeAssetName(),
+                    snapshot.getNativeAssetSymbol(),
+                    FormatUtils.formatUsd(totalUsd),
+                    FormatUtils.formatIdr(totalIdr),
+                    FormatUtils.formatToken(snapshot.getNativeBalance(), snapshot.getNativeAssetSymbol()),
+                    getApplication().getString(R.string.native_chart_title, snapshot.getNativeAssetSymbol()),
+                    getApplication().getString(R.string.native_chart_subtitle, snapshot.getNativeAssetSymbol()),
+                    tokenItems,
+                    nftItems,
+                    new ArrayList<>(),
+                    chartItems,
+                    null
+            ));
+            lastLoadedKey = stateKey;
+            lastLoadedAt = System.currentTimeMillis();
+        } catch (Exception exception) {
+            String networkName = walletRepository.getSelectedNetwork().getDisplayName();
+            String nativeAssetName = walletRepository.getSelectedNetwork().getNativeAssetName();
+            String nativeAssetSymbol = walletRepository.getSelectedNetwork().getNativeSymbol();
+            uiState.postValue(new HomeUiState(
+                    "", "", networkName,
+                    nativeAssetName,
+                    nativeAssetSymbol,
+                    FormatUtils.formatToken(BigDecimal.ZERO, nativeAssetSymbol),
+                    FormatUtils.formatIdr(BigDecimal.ZERO),
+                    FormatUtils.formatUsd(BigDecimal.ZERO),
+                    getApplication().getString(R.string.native_chart_title, nativeAssetSymbol),
+                    getApplication().getString(R.string.native_chart_subtitle, nativeAssetSymbol),
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    new ArrayList<>(),
+                    Collections.emptyList(),
+                    exception.getMessage()
+            ));
+        }
+    }
+
+    private interface IoSupplier<T> {
+        T get() throws Exception;
+    }
+
+    private static <T> CompletableFuture<T> supplyAsync(IoSupplier<T> supplier) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return supplier.get();
+            } catch (Exception exception) {
+                throw new CompletionException(exception);
+            }
+        }, AppExecutors.network());
+    }
+
+    private static <T> T joinUnwrapped(CompletableFuture<T> future) throws Exception {
+        try {
+            return future.join();
+        } catch (CompletionException exception) {
+            Throwable cause = exception.getCause();
+            throw cause instanceof Exception ? (Exception) cause : exception;
+        }
     }
 
     public void loadChart(ChartItem chartItem) {

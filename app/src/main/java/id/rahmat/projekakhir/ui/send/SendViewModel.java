@@ -39,7 +39,7 @@ public class SendViewModel extends AndroidViewModel {
         walletRepository = ServiceLocator.getWalletRepository(application);
         transactionRepository = ServiceLocator.getTransactionRepository(application);
         priceRepository = ServiceLocator.getPriceRepository(application);
-        ethereumService = new EthereumService();
+        ethereumService = ServiceLocator.getEthereumService();
     }
 
     public LiveData<GasEstimation> getGasState() {

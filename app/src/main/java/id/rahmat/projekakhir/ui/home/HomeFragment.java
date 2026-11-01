@@ -93,7 +93,7 @@ public class HomeFragment extends BaseFragment {
         binding.buttonAiAdvisor.setOnClickListener(v -> openAiAdvisor());
         binding.buttonRefresh.setOnClickListener(v -> {
             binding.homeSwipeRefresh.setRefreshing(true);
-            viewModel.refresh();
+            viewModel.refresh(true);
         });
         binding.buttonPromo.setOnClickListener(v -> {
             CustomTabsIntent intent = new CustomTabsIntent.Builder().build();

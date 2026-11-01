@@ -32,16 +32,19 @@ public final class ServiceLocator {
     private static NftRepository nftRepository;
     private static NewsRepository newsRepository;
     private static OpenAiRepository openAiRepository;
+    private static EthereumService ethereumService;
+    private static EtherscanApi etherscanApi;
+    private static OkHttpClient baseHttpClient;
 
     private ServiceLocator() {
     }
 
-    public static WalletRepository getWalletRepository(Context context) {
+    public static synchronized WalletRepository getWalletRepository(Context context) {
         if (walletRepository == null) {
             Context appContext = context.getApplicationContext();
             walletRepository = new WalletRepository(
                     new WalletManager(appContext),
-                    new EthereumService(),
+                    getEthereumService(),
                     getPriceRepository(appContext),
                     new AppPreferences(appContext)
             );
@@ -49,20 +52,19 @@ public final class ServiceLocator {
         return walletRepository;
     }
 
-    public static TransactionRepository getTransactionRepository(Context context) {
+    public static synchronized TransactionRepository getTransactionRepository(Context context) {
         if (transactionRepository == null) {
             Context appContext = context.getApplicationContext();
             transactionRepository = new TransactionRepository(
                     AppDatabase.getInstance(appContext).transactionDao(),
-                    createRetrofit(BuildConfig.ETHERSCAN_MAINNET_BASE_URL).create(EtherscanApi.class),
-                    createRetrofit(BuildConfig.ETHERSCAN_SEPOLIA_BASE_URL).create(EtherscanApi.class),
+                    getEtherscanApi(),
                     new AppPreferences(appContext)
             );
         }
         return transactionRepository;
     }
 
-    public static PriceRepository getPriceRepository(Context context) {
+    public static synchronized PriceRepository getPriceRepository(Context context) {
         if (priceRepository == null) {
             priceRepository = new PriceRepository(
                     createRetrofit(BuildConfig.COINGECKO_BASE_URL).create(CoinGeckoApi.class)
@@ -71,20 +73,20 @@ public final class ServiceLocator {
         return priceRepository;
     }
 
-    public static NftRepository getNftRepository(Context context) {
+    public static synchronized NftRepository getNftRepository(Context context) {
         if (nftRepository == null) {
             Context appContext = context.getApplicationContext();
             nftRepository = new NftRepository(
-                    createRetrofit(BuildConfig.ETHERSCAN_MAINNET_BASE_URL).create(EtherscanApi.class),
-                    createRetrofit(BuildConfig.ETHERSCAN_SEPOLIA_BASE_URL).create(EtherscanApi.class),
+                    getEtherscanApi(),
                     new AppPreferences(appContext),
-                    new EthereumService()
+                    getEthereumService(),
+                    getHttpClient()
             );
         }
         return nftRepository;
     }
 
-    public static NewsRepository getNewsRepository(Context context) {
+    public static synchronized NewsRepository getNewsRepository(Context context) {
         if (newsRepository == null) {
             newsRepository = new NewsRepository(
                     createRetrofit("https://api.gdeltproject.org/").create(GdeltApi.class)
@@ -93,7 +95,7 @@ public final class ServiceLocator {
         return newsRepository;
     }
 
-    public static OpenAiRepository getOpenAiRepository(Context context) {
+    public static synchronized OpenAiRepository getOpenAiRepository(Context context) {
         if (openAiRepository == null) {
             openAiRepository = new OpenAiRepository(
                     createRetrofit("https://api.openai.com/", 30).create(OpenAiApi.class)
@@ -102,19 +104,49 @@ public final class ServiceLocator {
         return openAiRepository;
     }
 
+    private static synchronized EtherscanApi getEtherscanApi() {
+        if (etherscanApi == null) {
+            etherscanApi = createRetrofit(BuildConfig.ETHERSCAN_BASE_URL).create(EtherscanApi.class);
+        }
+        return etherscanApi;
+    }
+
+    public static synchronized EthereumService getEthereumService() {
+        if (ethereumService == null) {
+            ethereumService = new EthereumService(getHttpClient());
+        }
+        return ethereumService;
+    }
+
+    /**
+     * One shared client for every API and RPC call, so they reuse a single
+     * connection pool and thread pool instead of each opening their own.
+     */
+    public static synchronized OkHttpClient getHttpClient() {
+        if (baseHttpClient == null) {
+            OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                    .connectTimeout(6, TimeUnit.SECONDS)
+                    .readTimeout(8, TimeUnit.SECONDS)
+                    .writeTimeout(8, TimeUnit.SECONDS);
+            if (BuildConfig.DEBUG) {
+                // Release builds never log: request URLs carry API keys.
+                HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+                loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+                builder.addInterceptor(loggingInterceptor);
+            }
+            baseHttpClient = builder.build();
+        }
+        return baseHttpClient;
+    }
+
     private static Retrofit createRetrofit(String baseUrl) {
         return createRetrofit(baseUrl, 8);
     }
 
     private static Retrofit createRetrofit(String baseUrl, int readTimeoutSeconds) {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(6, TimeUnit.SECONDS)
+        OkHttpClient client = getHttpClient().newBuilder()
                 .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
                 .writeTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
-                .addInterceptor(loggingInterceptor)
                 .build();
 
         return new Retrofit.Builder()

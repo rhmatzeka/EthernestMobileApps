@@ -13,6 +13,7 @@ import id.rahmat.projekakhir.BuildConfig;
 import id.rahmat.projekakhir.R;
 import id.rahmat.projekakhir.data.repository.WalletRepository;
 import id.rahmat.projekakhir.di.ServiceLocator;
+import id.rahmat.projekakhir.utils.AddressUtils;
 import id.rahmat.projekakhir.utils.AppExecutors;
 import id.rahmat.projekakhir.utils.FormatUtils;
 import id.rahmat.projekakhir.wallet.EthereumNetwork;
@@ -99,7 +100,7 @@ public class SwapViewModel extends AndroidViewModel {
     public SwapViewModel(@NonNull Application application) {
         super(application);
         walletRepository = ServiceLocator.getWalletRepository(application);
-        ethereumService = new EthereumService();
+        ethereumService = ServiceLocator.getEthereumService();
         selectedAsset = getFirstConfiguredAsset();
     }
 
@@ -345,10 +346,8 @@ public class SwapViewModel extends AndroidViewModel {
     }
 
     private boolean hasSwapConfig(SwapAssetConfig config) {
-        return config.tokenAddress != null
-                && !config.tokenAddress.isEmpty()
-                && config.poolAddress != null
-                && !config.poolAddress.isEmpty();
+        return AddressUtils.isEvmAddress(config.tokenAddress)
+                && AddressUtils.isEvmAddress(config.poolAddress);
     }
 
     private SwapAssetConfig getConfig(Asset asset) {
