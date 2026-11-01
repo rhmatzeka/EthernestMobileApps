@@ -67,6 +67,15 @@ alive() {
   fi
 }
 
+hide_keyboard() {
+  # BACK closes the on-screen keyboard; only send it while the keyboard is up,
+  # otherwise BACK would leave the screen.
+  if adb shell dumpsys input_method | grep -q "mInputShown=true"; then
+    adb shell input keyevent 4
+    sleep 1
+  fi
+}
+
 failed=0
 step() {
   echo "== $1"
@@ -81,8 +90,7 @@ step "pin: first entry"        tap id:inputPin 1
 adb shell input text 123456
 step "pin: confirm entry"      tap id:inputConfirmPin 1
 adb shell input text 123456
-adb shell input keyevent 111   # ESC: close the keyboard
-sleep 1
+hide_keyboard
 step "pin: continue"           tap id:buttonContinue 4
 step "home: opened"            wait_for id:menu_home 30
 if [ "$failed" -ne 0 ]; then
