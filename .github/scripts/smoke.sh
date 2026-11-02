@@ -115,7 +115,15 @@ step() {
 }
 
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
+# Screenshot all three slides on the way: slide 1, Next to slide 2, then Skip
+# (hidden on the last slide) jumps to slide 3.
+onboarding_shot() { sleep 2; dump; shot "$1"; }
+step "onboarding: slide 1"     wait_for id:buttonNext
+onboarding_shot 0-onboarding-1
+step "onboarding: next"        tap id:buttonNext 1
+onboarding_shot 0-onboarding-2
 step "onboarding: skip"        tap_until id:textSkip id:buttonCreateWallet
+onboarding_shot 0-onboarding-3
 step "onboarding: create"      tap_away id:buttonCreateWallet
 step "pin: first entry"        tap id:inputPin 1
 adb shell input text 123456
