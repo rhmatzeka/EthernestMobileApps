@@ -365,10 +365,20 @@
     <string name="label_status">Status</string>
     <string name="label_note">Catatan</string>
     <string name="history_empty_subtitle">Saat integrasi blockchain selesai, transaksi akan muncul otomatis di sini.</string>
-    <string name="onboarding_one_title">Kelola aset Ethereum dengan tampilan e-wallet modern</string>
-    <string name="onboarding_one_desc">Saldo, konversi harga, dan histori transaksi dikemas dalam dashboard yang sederhana dan familiar.</string>
-    <string name="onboarding_two_title">Transaksi lebih aman dengan PIN, biometrik, dan Keystore</string>
-    <string name="onboarding_two_desc">Private key dan mnemonic akan dienkripsi memakai Android Keystore sebelum disimpan ke perangkat.</string>
-    <string name="onboarding_three_title">Siap kirim, terima, dan lacak ETH di Sepolia lebih dulu</string>
-    <string name="onboarding_three_desc">Fondasi wallet dipersiapkan untuk Web3j, Infura, CoinGecko, QR code, Room, dan ERC-20 token support.</string>
+    <string name="onboarding_one_title">Semua aset kriptomu di satu dompet</string>
+    <string name="onboarding_one_desc">Lihat saldo di 9 jaringan beserta nilainya dalam rupiah dan dolar, cukup dari satu layar.</string>
+    <string name="onboarding_two_title">Hanya kamu yang bisa membuka dompet ini</string>
+    <string name="onboarding_two_desc">PIN dan sidik jari menjaga setiap transaksi. Kunci dompet dienkripsi dan tidak pernah keluar dari HP-mu.</string>
+    <string name="onboarding_three_title">Kirim dan terima cukup lewat QR</string>
+    <string name="onboarding_three_desc">Scan QR untuk mengirim, bagikan alamatmu untuk menerima. Coba dulu di jaringan Sepolia tanpa uang sungguhan.</string>
+    <string name="onboarding_art_total_balance">Saldo total</string>
+    <string name="onboarding_art_networks">9 jaringan</string>
+    <string name="onboarding_art_enter_pin">Masukkan PIN</string>
+    <string name="onboarding_art_pin_hint">Diminta sebelum setiap transaksi</string>
+    <string name="onboarding_art_key_local">Kunci dompet hanya tersimpan di HP ini</string>
+    <string name="onboarding_art_sent">Terkirim</string>
+    <string name="onboarding_art_to_address">ke 0x8f3a…91c2</string>
+    <string name="onboarding_art_network">Jaringan</string>
+    <string name="onboarding_art_fee">Biaya jaringan</string>
+    <string name="onboarding_art_scan_qr">Scan QR</string>
 </resources>
