@@ -65,7 +65,7 @@
         android:id="@+id/indicatorContainer"
         android:layout_width="wrap_content"
         android:layout_height="8dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/actionFrame"
         app:layout_constraintStart_toStartOf="parent" />
@@ -76,7 +76,7 @@
         android:id="@+id/actionFrame"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="28dp"
         android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

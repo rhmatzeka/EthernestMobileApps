@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipChildren="false"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="12dp">
 
     <!-- The illustration is a picture of the app, not content: TalkBack reads
          only the title and description below it. -->
@@ -33,7 +34,8 @@
         android:id="@+id/textSlideTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
+        android:breakStrategy="balanced"
         android:fontFamily="sans-serif"
         android:letterSpacing="-0.01"
         android:lineSpacingMultiplier="1.08"
@@ -45,6 +47,7 @@
         android:id="@+id/textSlideDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:breakStrategy="balanced"
         android:layout_marginTop="12dp"
         android:fontFamily="sans-serif"
         android:lineSpacingExtra="5dp"

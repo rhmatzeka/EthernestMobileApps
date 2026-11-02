@@ -19,6 +19,8 @@ public class OnboardingPagerAdapter extends RecyclerView.Adapter<OnboardingPager
 
     private static final int PIN_LENGTH = 6;
     private static final int PIN_FILLED = 4;
+    /** Tall screens may enlarge the illustration a little to fill the space. */
+    private static final float MAX_ART_SCALE = 1.15f;
 
     private final List<OnboardingSlide> slides;
 
@@ -86,8 +88,8 @@ public class OnboardingPagerAdapter extends RecyclerView.Adapter<OnboardingPager
         OnboardingViewHolder(ItemOnboardingPageBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
-            // Shrink the illustration on short screens instead of letting it
-            // collide with the title.
+            // Fit the illustration to the space left by the text: shrink it on
+            // short screens, enlarge it slightly on tall ones.
             binding.artFrame.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> fitArt());
         }
 
@@ -103,9 +105,9 @@ public class OnboardingPagerAdapter extends RecyclerView.Adapter<OnboardingPager
             if (art.getWidth() == 0 || art.getHeight() == 0 || frameHeight == 0) {
                 return;
             }
-            float scale = Math.min(1f, Math.min(
+            float scale = Math.min(MAX_ART_SCALE, Math.min(
                     frameWidth / (float) art.getWidth(),
-                    frameHeight * 0.94f / art.getHeight()));
+                    frameHeight * 0.9f / art.getHeight()));
             art.setScaleX(scale);
             art.setScaleY(scale);
         }

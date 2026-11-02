@@ -2,9 +2,9 @@
 <!-- Soft blue light behind each onboarding illustration. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
     <gradient
-        android:centerColor="#1A1D4ED8"
+        android:centerColor="#261D4ED8"
         android:endColor="#00000000"
         android:gradientRadius="170dp"
-        android:startColor="#4038BDF8"
+        android:startColor="#5938BDF8"
         android:type="radial" />
 </shape>
